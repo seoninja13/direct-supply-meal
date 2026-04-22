@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1 id="title">Signing you in&hellip;</h1>
+  <p id="status" class="muted">Exchanging Clerk session for a ds-meal cookie&hellip;</p>
+</section>
+
+<!-- Load Clerk's SDK from the tenant-specific frontend host. -->
+{% if clerk_js_url %}
+<script
+  async crossorigin="anonymous"
+  data-clerk-publishable-key="{{ publishable_key }}"
+  src="{{ clerk_js_url }}"
+  type="text/javascript"></script>
+{% endif %}
+
+<script>
+  (function () {
+    var pk = "{{ publishable_key }}";
+    var status = document.getElementById("status");
+    var title = document.getElementById("title");
+
+    async function exchange() {
+      try {
+        if (!window.Clerk) {
+          status.textContent = "Clerk SDK did not load. Refresh to retry.";
+          return;
+        }
+        await window.Clerk.load({ publishableKey: pk });
+
+        if (!window.Clerk.session) {
+          window.location.replace("/sign-in");
+          return;
+        }
+
+        var token = await window.Clerk.session.getToken();
+        if (!token) {
+          status.textContent = "No Clerk session token available.";
+          return;
+        }
+
+        var form = new FormData();
+        form.append("token", token);
+        var resp = await fetch("/sign-in/exchange", {
+          method: "POST",
+          body: form,
+          credentials: "include",
+        });
+
+        if (resp.status === 403) {
+          title.textContent = "Access denied";
+          status.textContent =
+            "Your email is not on this facility's allowlist. Contact your administrator.";
+          return;
+        }
+
+        if (!resp.ok) {
+          var data = await resp.json().catch(function () { return {}; });
+          status.textContent = "Sign-in failed: " + (data.detail || resp.status);
+          return;
+        }
+
+        var ok = await resp.json();
+        window.location.replace(ok.redirect || "/facility/dashboard");
+      } catch (err) {
+        status.textContent = "Unexpected error: " + (err && err.message ? err.message : err);
+      }
+    }
+
+    function waitForClerk(retries) {
+      if (window.Clerk) return exchange();
+      if (retries <= 0) {
+        status.textContent = "Clerk SDK did not load.";
+        return;
+      }
+      setTimeout(function () { waitForClerk(retries - 1); }, 200);
+    }
+    waitForClerk(30);
+  })();
+</script>
+{% endblock %}

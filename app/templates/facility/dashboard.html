@@ -1,8 +1,35 @@
-{# PSEUDOCODE: Post-sign-in landing. Shows active orders summary tiles + next delivery + quick reorder links.
-   Uses partials/status_badge for each order tile. #}
 {% extends "base.html" %}
 {% block content %}
-<h1>Welcome, {{ user.email if user else "admin" }}</h1>
-<p>Facility: {{ facility.name if facility else "Phase 3 stub" }}</p>
-<!-- Phase 3 stub; Phase 4 iterates active_orders into tiles -->
+<h1>{{ facility.name if facility else "Facility Dashboard" }}</h1>
+
+{% if facility %}
+<p class="subtitle">
+  {{ facility.type.value if facility.type else "" }} &middot;
+  {{ facility.bed_count }} beds &middot;
+  signed in as <strong>{{ user.email }}</strong>
+</p>
+{% else %}
+<p class="subtitle">
+  Signed in as <strong>{{ user.email }}</strong>
+</p>
+{% endif %}
+
+<section class="dashboard-placeholder">
+  <h2>Active orders</h2>
+  {% if active_orders %}
+    {# Slice C fills this in. #}
+  {% else %}
+    <p class="muted">
+      <em>Slice&nbsp;B placeholder.</em> Slice&nbsp;C adds the active-orders
+      summary, status tiles, next delivery, and quick reorder shortcuts.
+    </p>
+  {% endif %}
+</section>
+
+<section class="dashboard-quicklinks">
+  <h2>Quick links</h2>
+  <ul>
+    <li><a href="/recipes">Browse the recipe catalog</a></li>
+  </ul>
+</section>
 {% endblock %}

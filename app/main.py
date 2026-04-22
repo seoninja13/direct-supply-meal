@@ -43,13 +43,15 @@ def create_app() -> FastAPI:
     application.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     application.state.templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
-    # Register routers — Slice A exposes only public + recipes.
-    from app.routes import public, recipes
+    # Register routers — Slice A: public + recipes. Slice B: facility.
+    from app.routes import facility, public, recipes
 
     application.include_router(public.router)
     application.include_router(public.api_router)
     application.include_router(recipes.router)
     application.include_router(recipes.api_router)
+    application.include_router(facility.router)
+    application.include_router(facility.api_router)
 
     return application
 

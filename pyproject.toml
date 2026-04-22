@@ -20,7 +20,7 @@ dependencies = [
   "claude-agent-sdk",
   "python-dotenv",
   "pydantic-settings",
-  "python-jose[cryptography]",
+  "pyjwt[crypto]",
   "httpx",
   "PyYAML",
 ]

@@ -23,12 +23,12 @@ from app.db.init_schema import (
 )
 
 # Ensure SQLModel.metadata sees every table before create_all.
-from app.models import facility as _facility  # noqa: F401
 from app.models import meal_plan as _meal_plan  # noqa: F401
 from app.models import order as _order  # noqa: F401
 from app.models import resident as _resident  # noqa: F401
-from app.models import user as _user  # noqa: F401
+from app.models.facility import Facility, FacilityType
 from app.models.recipe import Ingredient, Recipe, RecipeIngredient
+from app.models.user import User
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
 
@@ -45,6 +45,55 @@ def _get_or_create_ingredient(session: Session, name: str, allergen_tags: list[s
     session.add(row)
     session.flush()
     return row.id
+
+
+def _seed_facilities(session: Session) -> int:
+    """Load fixtures/facilities.json. Idempotent on Facility.name."""
+    data = _load_json("facilities.json")
+    added = 0
+    for f in data:
+        existing = session.exec(select(Facility).where(Facility.name == f["name"])).first()
+        if existing is not None:
+            continue
+        row = Facility(
+            id=f["id"],
+            name=f["name"],
+            type=FacilityType(f["type"]),
+            bed_count=f["bed_count"],
+            admin_email=f.get("admin_email"),
+        )
+        session.add(row)
+        added += 1
+    session.commit()
+    return added
+
+
+def _seed_admin_user_placeholder(session: Session) -> int:
+    """Seed user id=1 as the admin placeholder bound to the facility with admin_email.
+
+    `clerk_user_id` is a sentinel `__unprovisioned__` until the first real sign-in,
+    at which point provisioning updates it. This satisfies FK constraints on demo
+    orders (Slice C) that reference `placed_by_user_id=1`.
+    """
+    existing = session.exec(select(User).where(User.id == 1)).first()
+    if existing is not None:
+        return 0
+
+    # Find the facility that has admin_email set (Phase 1 invariant: exactly one).
+    facility = session.exec(select(Facility).where(Facility.admin_email.is_not(None))).first()
+    if facility is None:
+        return 0
+
+    user = User(
+        id=1,
+        clerk_user_id="__unprovisioned__",
+        email=facility.admin_email,
+        facility_id=facility.id,
+        role="admin",
+    )
+    session.add(user)
+    session.commit()
+    return 1
 
 
 def _seed_recipes(session: Session) -> tuple[int, int]:
@@ -110,9 +159,14 @@ def main() -> None:
     SQLModel.metadata.create_all(engine)
 
     with Session(engine) as session:
+        f = _seed_facilities(session)
+        u = _seed_admin_user_placeholder(session)
         r, i = _seed_recipes(session)
 
-    print(f"Seeded: {r} recipes, {i} recipe-ingredient links.")
+    print(
+        f"Seeded: {f} facilities, {u} admin users, {r} recipes, "
+        f"{i} recipe-ingredient links."
+    )
 
 
 if __name__ == "__main__":

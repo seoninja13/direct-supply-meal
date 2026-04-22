@@ -1,96 +1,147 @@
 """
-PSEUDOCODE:
-1. One-line summary of module purpose.
-   - Clerk JWT verification via JWKS. Public surface: verify_clerk_jwt(token) -> ClerkClaims.
-     Implements P15 (Authentication Isolation) — single-tenant Clerk app, allowlist anchor.
-2. Ordered steps.
-   a. Fetch JWKS document from settings.CLERK_JWKS_URL (cached in-process with a TTL).
-   b. On every verify call: unverified-header -> kid -> pick matching JWK -> build RSA pubkey.
-   c. Call python-jose `jwt.decode(token, key, algorithms=["RS256"], audience=None,
-      options={"verify_aud": False})` — Clerk session tokens don't set aud.
-   d. Assert the claims we rely on: sub (clerk_user_id), email, exp, iss matches Clerk's
-      issuer URL format `https://<frontend_api>/`. Reject otherwise with AuthError.
-   e. Return a pydantic ClerkClaims model so downstream code is strongly typed.
-3. Inputs / Outputs.
-   - Inputs: raw JWT bearer token (from Authorization header or Clerk session cookie).
-   - Outputs: ClerkClaims { sub, email, first_name, last_name, image_url, iat, exp, iss }.
-   - Raises: AuthError for signature/expiration/issuer/mangled-payload failures.
-4. Side effects.
-   - Network fetch of JWKS on cache miss (≤once per TTL window).
-   - Module-level cache of JWKS document + ETag for polite refresh.
+Clerk session-JWT verification via JWKS.
 
-IMPLEMENTATION: Phase 4 — see functions below.
+Clerk issues RS256-signed JWTs as session tokens. We fetch the JWKS once
+(cached for TTL), look up the signing key by `kid` from the JWT header, and
+verify the signature with PyJWT.
+
+No Clerk SDK dependency — stdlib + PyJWT + httpx. Small, testable, auditable.
+
+IMPLEMENTATION: Slice B.
+Contract: PROTOCOL-APPLICATION-MATRIX §P15.
 """
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Any
 
+import jwt
+from jwt import InvalidTokenError, PyJWKClient, PyJWKClientError
+
+from app.config import get_settings
+
 
 class AuthError(Exception):
-    # PSEUDO: raised for any failure in JWT verification; mapped to 401 by the dependency.
-    pass
+    """Raised when a Clerk session JWT cannot be verified."""
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClerkClaims:
-    # PSEUDO: Typed projection of the Clerk session claims we actually use.
-    #   - sub: Clerk user id (maps to User.clerk_user_id).
-    #   - email: primary email (used for Facility.admin_email allowlist match).
-    #   - first_name / last_name / image_url: display fields for the nav.
-    #   - iat / exp: issue/expiry epochs for observability.
-    #   - iss: issuer URL (sanity-checked against Clerk frontend-api format).
-    sub: str
+    """Minimal, strongly-typed projection of Clerk's JWT claims."""
+
+    sub: str  # Clerk user id, e.g. "user_2abc..."
     email: str
-    first_name: str | None
-    last_name: str | None
-    image_url: str | None
-    iat: int
-    exp: int
-    iss: str
+    issued_at: int
+    expires_at: int
+    session_id: str | None = None
+    raw: dict[str, Any] | None = None
 
 
-# PSEUDO: in-process JWKS cache. { "fetched_at": epoch, "ttl_s": 3600, "jwks": {...} }.
-_JWKS_CACHE: dict[str, Any] = {"fetched_at": 0.0, "ttl_s": 3600, "jwks": None}
+# --- JWKS fetch + cache ---------------------------------------------------
+
+_JWKS_TTL_SECONDS = 600  # 10 min
+_jwks_client: PyJWKClient | None = None
+_jwks_client_loaded_at: float = 0.0
+_jwks_client_url: str | None = None  # track the URL it was built for
 
 
-def _fetch_jwks() -> dict[str, Any]:
-    # PSEUDO: Fetch the JWKS document from Clerk.
-    #   1. GET settings.CLERK_JWKS_URL via httpx (sync, timeout=5s).
-    #   2. Raise AuthError on non-200 / JSON decode error.
-    #   3. Return parsed dict {"keys": [...]}.
-    raise NotImplementedError
+def _get_jwks_client() -> PyJWKClient:
+    """Return a cached PyJWKClient bound to settings.CLERK_JWKS_URL."""
+    global _jwks_client, _jwks_client_loaded_at, _jwks_client_url
+    now = time.time()
+    url = get_settings().CLERK_JWKS_URL
+    if not url:
+        raise AuthError("CLERK_JWKS_URL is not configured")
+
+    expired = (now - _jwks_client_loaded_at) > _JWKS_TTL_SECONDS
+    mismatched = _jwks_client_url != url
+    if _jwks_client is None or expired or mismatched:
+        _jwks_client = PyJWKClient(url, cache_keys=True, lifespan=_JWKS_TTL_SECONDS)
+        _jwks_client_loaded_at = now
+        _jwks_client_url = url
+    return _jwks_client
 
 
-def _get_jwks(force_refresh: bool = False) -> dict[str, Any]:
-    # PSEUDO: Return cached JWKS, refreshing when TTL expired or force_refresh=True.
-    #   1. If _JWKS_CACHE["jwks"] is None OR (now - fetched_at) > ttl_s OR force_refresh:
-    #        _JWKS_CACHE["jwks"] = _fetch_jwks(); _JWKS_CACHE["fetched_at"] = now.
-    #   2. Return _JWKS_CACHE["jwks"].
-    raise NotImplementedError
+def reset_jwks_cache() -> None:
+    """Test helper — drop the cached JWKS client."""
+    global _jwks_client, _jwks_client_loaded_at, _jwks_client_url
+    _jwks_client = None
+    _jwks_client_loaded_at = 0.0
+    _jwks_client_url = None
 
 
-def _select_key(jwks: dict[str, Any], kid: str) -> dict[str, Any]:
-    # PSEUDO: Pick the JWK entry matching the token's kid. Raise AuthError if not found.
-    raise NotImplementedError
+# --- Token verification ---------------------------------------------------
 
 
-def verify_clerk_jwt(token: str) -> ClerkClaims:
-    # PSEUDO: Verify a Clerk session JWT and return structured claims.
-    #   1. Guard: reject empty/None token fast with AuthError("missing_token").
-    #   2. Parse unverified header to extract `kid` and `alg`.
-    #   3. jwks = _get_jwks(); jwk = _select_key(jwks, kid).
-    #        On key-not-found, call _get_jwks(force_refresh=True) once, then re-select.
-    #   4. Use jose.jwk.construct(jwk) to build the RSA public key.
-    #   5. claims = jose.jwt.decode(token, key, algorithms=[alg], options={"verify_aud": False}).
-    #   6. Validate exp > now, iss starts with "https://" and ends with ".clerk.accounts.dev/"
-    #      or the configured Clerk frontend API host.
-    #   7. Map claim dict -> ClerkClaims dataclass, defaulting missing optional fields to None.
-    #   8. Return ClerkClaims. On any exception, raise AuthError with a stable string code.
-    raise NotImplementedError
+def verify_clerk_jwt(token: str, *, audience: str | None = None) -> ClerkClaims:
+    """
+    Verify a Clerk session JWT. Raises AuthError on any failure.
+
+    Steps:
+      1. Resolve the signing key via JWKS (using the `kid` in the token header).
+      2. Validate RS256 signature.
+      3. Enforce `exp` and `iat`.
+      4. Extract `sub`, `email`, `sid`.
+
+    `audience` is optional — Clerk's default session tokens omit `aud`; some
+    custom JWT templates set it. When provided it is enforced.
+    """
+    if not token or not isinstance(token, str):
+        raise AuthError("missing_token")
+
+    try:
+        client = _get_jwks_client()
+        signing_key = client.get_signing_key_from_jwt(token)
+    except (PyJWKClientError, InvalidTokenError) as exc:
+        raise AuthError(f"signing_key_lookup_failed: {exc}") from exc
+
+    try:
+        claims: dict[str, Any] = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            audience=audience,
+            options={"require": ["exp", "iat"]},
+        )
+    except InvalidTokenError as exc:
+        raise AuthError(f"jwt_verification_failed: {exc}") from exc
+
+    email = _extract_email(claims)
+    if not email:
+        raise AuthError("missing_email_claim")
+
+    return ClerkClaims(
+        sub=claims["sub"],
+        email=email.lower().strip(),
+        issued_at=claims["iat"],
+        expires_at=claims["exp"],
+        session_id=claims.get("sid"),
+        raw=claims,
+    )
 
 
-# Phase 2 Graduation: swap the in-process JWKS cache for a Redis-backed cache shared across
-# ASGI workers and add org-scoped claim extraction (org_id, org_role) when Clerk Organizations
-# are enabled for multi-tenant RBAC per PROTOCOL-APPLICATION-MATRIX §P15 seam.
+def _extract_email(claims: dict[str, Any]) -> str | None:
+    """Walk common Clerk JWT-template shapes to locate the user's email."""
+    for key in ("email", "primary_email_address", "primary_email"):
+        value = claims.get(key)
+        if isinstance(value, str) and "@" in value:
+            return value
+
+    for path in (("user", "email"), ("metadata", "email"), ("user", "primary_email_address")):
+        node: Any = claims
+        for step in path:
+            if not isinstance(node, dict) or step not in node:
+                node = None
+                break
+            node = node[step]
+        if isinstance(node, str) and "@" in node:
+            return node
+
+    return None
+
+
+# Phase 2 Graduation: swap the PyJWKClient in-process cache for a Redis-backed cache
+# shared across ASGI workers; add org-scoped claim extraction (org_id, org_role) when
+# Clerk Organizations are enabled for multi-tenant RBAC.

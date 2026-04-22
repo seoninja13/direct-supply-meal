@@ -1,41 +1,79 @@
 """
-PSEUDOCODE:
-1. Gated facility dashboard — what the admin sees immediately after sign-in.
-2. GET /facility/dashboard: summary of active orders, next delivery, quick-reorder tiles.
-3. /api/v1/facility/me: same data, JSON.
-4. Uses require_login dependency (verifies Clerk JWT, loads User row, scopes to User.facility_id).
-5. Inputs: no body. Outputs: dashboard context / JSON payload.
-6. Side effects: read-only DB queries.
+Facility dashboard route — the landing destination after sign-in.
 
-IMPLEMENTATION: Phase 4.
+Slice B ships a placeholder dashboard. Slice C fills in active-orders summary +
+quick-reorder tiles.
 
-Contract: docs/workflows/DOMAIN-WORKFLOW.md §4 J2.
+Contract: DOMAIN-WORKFLOW.md §4 J2.
 """
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from __future__ import annotations
 
-# from app.auth.dependencies import require_login
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth.dependencies import CurrentUser, require_login
+from app.db.database import get_session
+from app.models.facility import Facility
 
 router = APIRouter()
 api_router = APIRouter(prefix="/api/v1")
 
 
-# PSEUDO:
-# - user = require_login(request)
-# - active = services.orders.list_orders_for_facility(user.facility_id, status_filter={"pending","confirmed","in_preparation","out_for_delivery"}, page_size=5)
-# - next_delivery = min(active, key=delivery_date)
-# - recent_templates = most-ordered recipes in past 30 days
-# - render facility/dashboard.html
+async def _load_facility(session: AsyncSession, facility_id: int) -> Facility | None:
+    return await session.get(Facility, facility_id)
+
+
 @router.get("/facility/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    raise NotImplementedError
+async def dashboard(
+    request: Request,
+    user: Annotated[CurrentUser, Depends(require_login)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+):
+    facility = await _load_facility(session, user.facility_id)
+    return request.app.state.templates.TemplateResponse(
+        request=request,
+        name="facility/dashboard.html",
+        context={
+            "page_title": "Dashboard — ds-meal",
+            "user": user,
+            "facility": facility,
+            "active_orders": [],  # Slice C fills this in.
+            "next_delivery": None,
+        },
+    )
 
 
 @api_router.get("/facility/me")
-async def me_json():
-    raise NotImplementedError
+async def facility_me_json(
+    user: Annotated[CurrentUser, Depends(require_login)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+):
+    facility = await _load_facility(session, user.facility_id)
+    return JSONResponse(
+        {
+            "user": {
+                "id": user.user_id,
+                "email": user.email,
+                "facility_id": user.facility_id,
+            },
+            "facility": (
+                {
+                    "id": facility.id,
+                    "name": facility.name,
+                    "type": facility.type.value if facility else None,
+                    "bed_count": facility.bed_count,
+                }
+                if facility
+                else None
+            ),
+        }
+    )
 
 
-# Phase 2 Graduation:
-#   - Add /facility/{id}/dashboard for multi-facility admins. Seam: require_login → require_role.
+# Phase 2 Graduation: Slice C populates active_orders via
+# app.services.orders.list_orders_for_facility. Slice H adds recent_templates
+# (most-ordered recipes in last 30 days).
