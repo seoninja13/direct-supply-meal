@@ -1,63 +1,61 @@
 """
 PSEUDOCODE:
-1. One-line summary of module purpose.
-   - FastAPI application factory for ds-meal; wires routes, static files, Jinja templates,
-     startup DB schema init, and the /health endpoint per DOMAIN-WORKFLOW §10.
-2. Ordered steps.
-   a. Define create_app() -> FastAPI: the single entry point uvicorn / tests call.
-   b. Inside create_app():
-        - instantiate FastAPI(title="ds-meal", debug=settings.DEBUG).
-        - mount StaticFiles at /static pointing at app/static.
-        - register Jinja2Templates pointing at app/templates, attach to app.state.templates.
-        - include_router for each module under app/routes/ (public, recipes, facility,
-          meal_plans, orders, calendar, agents).
-        - register startup event that calls app/db/session.init_schema() to create tables.
-        - register /health (returns {"status":"ok"}) and its JSON twin /api/v1/health
-          in app/routes/public.py; nothing else lives at module level here.
-   c. Module-level `app = create_app()` so uvicorn's default app:app target works.
-3. Inputs / Outputs.
-   - Inputs: app/config.Settings (env-loaded), routers, templates dir, static dir.
-   - Outputs: a ready-to-serve FastAPI ASGI app.
-4. Side effects.
-   - At startup: creates SQLite tables if missing (idempotent).
-   - Registers request routing and static-file mounts.
+1. FastAPI application factory. Wires routes, static files, Jinja templates, startup init_schema.
+2. `app = create_app()` at module level so `uvicorn app.main:app` works.
+3. Slice A surface: public (/, /health, /sign-in placeholders) and recipes routers.
+   Subsequent slices add facility, meal_plans, orders, calendar, agents.
 
-IMPLEMENTATION: Phase 4 — see functions below.
+IMPLEMENTATION: Phase 4.
 """
 
 from __future__ import annotations
+
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.config import get_settings
+from app.db.init_schema import init_schema  # G12 — correct import path
+
+APP_ROOT = Path(__file__).parent
+TEMPLATE_DIR = APP_ROOT / "templates"
+STATIC_DIR = APP_ROOT / "static"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_schema()
+    yield
+
 
 def create_app() -> FastAPI:
-    # PSEUDO: Build and wire the FastAPI application.
-    #   1. Load Settings via get_settings() (memoized).
-    #   2. app = FastAPI(title="ds-meal", debug=settings.DEBUG, version="0.1.0").
-    #   3. app.mount("/static", StaticFiles(directory="app/static"), name="static").
-    #   4. templates = Jinja2Templates(directory="app/templates"); app.state.templates = templates.
-    #   5. Import routers lazily to keep import-time side effects minimal:
-    #        from app.routes import public, recipes, facility, meal_plans, orders, calendar, agents
-    #      app.include_router(public.router)
-    #      app.include_router(recipes.router)
-    #      app.include_router(facility.router)
-    #      app.include_router(meal_plans.router)
-    #      app.include_router(orders.router)
-    #      app.include_router(calendar.router)
-    #      app.include_router(agents.router)
-    #   6. Register startup handler that invokes app.db.session.init_schema() to create all
-    #      SQLModel tables against DATABASE_URL (safe to re-run; CREATE TABLE IF NOT EXISTS).
-    #   7. Return app.
-    raise NotImplementedError
+    settings = get_settings()
+    application = FastAPI(
+        title="ds-meal",
+        version="0.1.0",
+        debug=settings.DEBUG,
+        lifespan=lifespan,
+    )
+
+    application.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    application.state.templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+
+    # Register routers — Slice A exposes only public + recipes.
+    from app.routes import public, recipes
+
+    application.include_router(public.router)
+    application.include_router(public.api_router)
+    application.include_router(recipes.router)
+    application.include_router(recipes.api_router)
+
+    return application
 
 
-# PSEUDO: module-level ASGI target so `uvicorn app.main:app` works without a factory flag.
-#   In Phase 4 this becomes `app = create_app()`. During Phase 3 the attribute is declared so
-#   tooling (import linters, static analysers) can resolve `app.main:app` without executing.
-app: "FastAPI | None" = None
+app = create_app()
 
 
-# Phase 2 Graduation: swap `init_schema()` for an Alembic migration entry point and register an
-# Inngest client on startup so durable agent dispatch can flow through the same ASGI app.
+# Phase 2 Graduation: swap init_schema() for Alembic migration entry point; register Inngest
+# client on startup; add other routers (facility, meal_plans, orders, calendar, agents) in Slices B-E.

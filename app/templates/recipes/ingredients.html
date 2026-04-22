@@ -1,7 +1,50 @@
-{# PSEUDOCODE: Ingredients table. Given ScaledRecipe, render rows: name | grams | allergen_tags.
-   Small form with `?servings=N` to rescale. #}
 {% extends "base.html" %}
 {% block content %}
+<p class="breadcrumb"><a href="/recipes/{{ recipe.id }}">&larr; {{ recipe.title }}</a></p>
 <h1>Ingredients</h1>
-<!-- Phase 3 stub; Phase 4 renders scaled ingredient table -->
+
+<form method="get" action="/recipes/{{ recipe.id }}/ingredients" class="scale-form">
+  <label for="servings">Servings:</label>
+  <input type="number" id="servings" name="servings" min="1" max="500"
+         value="{{ scaled.target_servings }}">
+  <button type="submit" class="btn">Rescale</button>
+  <span class="muted">Base yield: {{ recipe.base_yield }}</span>
+</form>
+
+<table class="ingredients">
+  <thead>
+    <tr>
+      <th>Ingredient</th>
+      <th class="num">Grams</th>
+      <th>Allergens</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ing in scaled.ingredients %}
+    <tr>
+      <td>{{ ing.name }}</td>
+      <td class="num">{{ ing.grams }}</td>
+      <td>
+        {% for a in ing.allergen_tags %}
+          <span class="tag">{{ a }}</span>
+        {% else %}
+          <span class="muted">&mdash;</span>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td class="num"><strong>{{ scaled.total_grams }}</strong></td>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+
+<p class="muted">
+  Scaled from base yield of {{ recipe.base_yield }} servings to
+  {{ scaled.target_servings }} (factor {{ '%.2f'|format(scaled.scale_factor) }}).
+</p>
 {% endblock %}

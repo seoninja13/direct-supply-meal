@@ -17,10 +17,7 @@ IMPLEMENTATION: Phase 4.
 Reference: docs/workflows/PROTOCOL-APPLICATION-MATRIX.md §P10.
 """
 
-import json
 import sys
-from pathlib import Path
-
 
 SOURCE_TO_TEST_MAP = {
     # app/services/{name}.py → tests/unit/test_{name}.py

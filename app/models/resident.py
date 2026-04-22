@@ -19,9 +19,9 @@ IMPLEMENTATION: Phase 4 — see functions below.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import Column, JSON
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 
@@ -53,7 +53,7 @@ class Resident(SQLModel, table=True):
     #     Phase 1 leaves demographics free-form so seed data can evolve without schema churn.
     __tablename__ = "resident"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     facility_id: int = Field(foreign_key="facility.id", index=True)
     demographics: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
 
@@ -67,7 +67,7 @@ class ResidentDietaryFlag(SQLModel, table=True):
     #     data is generated and known-unique. Phase 2 will add a composite unique constraint.
     __tablename__ = "resident_dietary_flag"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     resident_id: int = Field(foreign_key="resident.id", index=True)
     flag: DietaryFlag
 

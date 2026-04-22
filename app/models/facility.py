@@ -19,7 +19,6 @@ IMPLEMENTATION: Phase 4 — see functions below.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
@@ -55,11 +54,11 @@ class Facility(SQLModel, table=True):
     #   - admin_email: optional allowlist anchor matched during Clerk provisioning (J2).
     __tablename__ = "facility"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     type: FacilityType
     bed_count: int
-    admin_email: Optional[str] = Field(default=None, index=True, unique=True)
+    admin_email: str | None = Field(default=None, index=True, unique=True)
 
 
 # Phase 2 Graduation: add per-facility RBAC role tables + multi-admin allowlist; split DeliveryWindow

@@ -1,11 +1,29 @@
-{# PSEUDOCODE: Anonymous landing page. Headline + "Sign in to order" CTA + link to public /recipes. #}
 {% extends "base.html" %}
 {% block content %}
 <section class="hero">
   <h1>Meal ordering for senior-living facilities</h1>
-  <p>A working prototype. Browse recipes, or sign in to plan weekly menus and place orders.</p>
-  <a href="/recipes" class="btn">Browse recipes</a>
-  <a href="/sign-in" class="btn btn-primary">Sign in</a>
+  <p class="subtitle">
+    A working prototype. Browse the recipe catalog below, or sign in to plan
+    weekly menus and place orders for your facility.
+  </p>
+  <div class="cta-row">
+    <a href="/recipes" class="btn">Browse recipes</a>
+    <a href="/sign-in" class="btn btn-primary">Sign in</a>
+  </div>
 </section>
-<!-- Phase 3 stub — copy and styling finalized in Phase 4 -->
+
+<section class="pitch">
+  <h2>What this is</h2>
+  <p>
+    Senior-care dietitians review weekly menus against every resident's diet
+    order, allergen profile, and texture modification &mdash; often in spreadsheets,
+    often manually. ds-meal pairs a deterministic API with two focused agentic
+    workflows (AI menu planner + natural-language ordering) to move the
+    reasoning out of the spreadsheet and into the tool.
+  </p>
+  <p class="muted">
+    Phase 1 demonstrates the foundation. Phase 2 (Inngest, richer wiki compile,
+    multi-tenant, supplier ERP) is documented alongside every Phase 1 seam.
+  </p>
+</section>
 {% endblock %}

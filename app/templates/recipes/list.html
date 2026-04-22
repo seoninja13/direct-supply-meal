@@ -1,15 +1,37 @@
-{# PSEUDOCODE: Public recipe list (kata baseline).
-   Table of 10 recipes with title, texture_level, per-serving price. Each row links to /recipes/{id}.
-   IMPLEMENTATION: Phase 4. #}
 {% extends "base.html" %}
-{% block title %}Recipes — ds-meal{% endblock %}
 {% block content %}
 <h1>Recipes</h1>
-<p><!-- Phase 3 stub: iterate {{ recipes }} here in Phase 4 --></p>
+<p class="muted">
+  The senior-appropriate recipe catalog. Static pricing shown per serving.
+  Click any row to see the default-yield detail and scale the ingredients.
+</p>
+
 <table class="recipe-list">
-  <thead><tr><th>Title</th><th>Texture</th><th>Allergens</th><th>Per serving</th></tr></thead>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Texture</th>
+      <th>Allergens</th>
+      <th>Base yield</th>
+      <th class="num">Per serving</th>
+    </tr>
+  </thead>
   <tbody>
-    {# {% for r in recipes %} ... {% endfor %} #}
+    {% for r in recipes %}
+    <tr>
+      <td><a href="/recipes/{{ r.id }}">{{ r.title }}</a></td>
+      <td>{{ r.texture_level }}</td>
+      <td>
+        {% for a in r.allergens %}
+          <span class="tag">{{ a }}</span>
+        {% else %}
+          <span class="muted">&mdash;</span>
+        {% endfor %}
+      </td>
+      <td>{{ r.base_yield }}</td>
+      <td class="num">${{ '%.2f'|format(r.cost_cents_per_serving / 100) }}</td>
+    </tr>
+    {% endfor %}
   </tbody>
 </table>
 {% endblock %}

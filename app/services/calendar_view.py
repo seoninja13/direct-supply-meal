@@ -30,7 +30,6 @@ IMPLEMENTATION: Phase 4.
 
 from __future__ import annotations
 
-import calendar
 from datetime import date
 from typing import TypedDict
 

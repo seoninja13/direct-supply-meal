@@ -18,9 +18,7 @@ IMPLEMENTATION: Phase 4 — see functions below.
 
 from __future__ import annotations
 
-from typing import Optional
-
-from sqlalchemy import Column, JSON
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 
@@ -37,7 +35,7 @@ class Recipe(SQLModel, table=True):
     #     compliance rule functions (diabetic, low_sodium, renal).
     __tablename__ = "recipe"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     title: str = Field(index=True)
     texture_level: int = Field(ge=0, le=4)
     allergens: list[str] = Field(default_factory=list, sa_column=Column(JSON))
@@ -58,7 +56,7 @@ class Ingredient(SQLModel, table=True):
     #   - unit_cost_cents: cost per gram (int cents). Feeds Phase 2 supplier ERP seam.
     __tablename__ = "ingredient"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     allergen_tags: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     unit_cost_cents: int
@@ -72,7 +70,7 @@ class RecipeIngredient(SQLModel, table=True):
     #   - grams: integer grams in base_yield — multiplied by (target/base_yield) in scaling.py.
     __tablename__ = "recipe_ingredient"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     recipe_id: int = Field(foreign_key="recipe.id", index=True)
     ingredient_id: int = Field(foreign_key="ingredient.id", index=True)
     grams: int

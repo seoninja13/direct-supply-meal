@@ -13,7 +13,6 @@ IMPLEMENTATION: Phase 4.
 Rationale: docs/workflows/KARPATHY-AUTO-RESEARCH-WORKFLOW.md §11 (Phase 1 honesty).
 """
 
-from pathlib import Path
 
 # from app.db.database import get_sync_session
 

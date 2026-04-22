@@ -18,7 +18,6 @@ IMPLEMENTATION: Phase 4 — see functions below.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
@@ -33,7 +32,7 @@ class User(SQLModel, table=True):
     #   - created_at: provisioning timestamp (UTC, set on INSERT).
     __tablename__ = "user"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     clerk_user_id: str = Field(index=True, unique=True)
     email: str = Field(index=True, unique=True)
     facility_id: int = Field(foreign_key="facility.id", index=True)

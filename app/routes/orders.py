@@ -13,8 +13,8 @@ IMPLEMENTATION: Phase 4.
 Contract: docs/workflows/DOMAIN-WORKFLOW.md §4 J4 and J5, AGENT-WORKFLOW.md §4.
 """
 
-from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Query, Request
+from fastapi.responses import HTMLResponse
 
 # from app.auth.dependencies import require_login
 # from agents.drivers.dispatch import invoke_director

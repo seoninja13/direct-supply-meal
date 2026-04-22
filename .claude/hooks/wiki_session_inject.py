@@ -15,9 +15,7 @@ IMPLEMENTATION: Phase 4.
 Contract: docs/workflows/KARPATHY-AUTO-RESEARCH-WORKFLOW.md §8.
 """
 
-import json
 import sys
-from pathlib import Path
 
 
 # PSEUDO:

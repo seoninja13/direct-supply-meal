@@ -1,10 +1,3 @@
-{# PSEUDOCODE:
-   1. Base layout for every page. Sets <html>, <head>, <body>, nav, footer.
-   2. Nav shows "Sign in" when anonymous, "Sign out" + facility name when authenticated.
-   3. One stylesheet (app/static/css/main.css). No JS unless strictly needed.
-   4. Child templates extend this via {% block content %}.
-   IMPLEMENTATION: Phase 4.
-#}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,17 +10,26 @@
   <nav class="topnav">
     <a href="/" class="brand">ds-meal</a>
     <a href="/recipes">Recipes</a>
+    <span class="spacer"></span>
     {% if user %}
-      <a href="/facility/dashboard">Dashboard</a>
-      <a href="/meal-plans">Plans</a>
-      <a href="/orders">Orders</a>
-      <a href="/calendar">Calendar</a>
-      <form method="post" action="/sign-out" style="display:inline"><button>Sign out</button></form>
+      <span class="user">{{ user.email }}</span>
+      <form method="post" action="/sign-out" class="inline">
+        <button type="submit" class="linkbtn">Sign out</button>
+      </form>
     {% else %}
-      <a href="/sign-in">Sign in</a>
+      <a href="/sign-in" class="signin">Sign in</a>
     {% endif %}
   </nav>
-  <main>{% block content %}<!-- Phase 3 stub -->{% endblock %}</main>
-  <footer><small>Phase 1 prototype — <a href="https://github.com/seoninja13/direct-supply-meal">repo</a></small></footer>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <small>
+      ds-meal prototype (Phase 1) &middot;
+      <a href="https://github.com/seoninja13/direct-supply-meal">source on GitHub</a>
+    </small>
+  </footer>
 </body>
 </html>

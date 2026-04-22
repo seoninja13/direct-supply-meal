@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from datetime import date
 from enum import Enum
-from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
@@ -40,7 +39,7 @@ class MealPlan(SQLModel, table=True):
     #   - created_by_user_id: FK to user.id (dietitian or admin who ran Menu Planner).
     __tablename__ = "meal_plan"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     facility_id: int = Field(foreign_key="facility.id", index=True)
     week_start: date = Field(index=True)
     created_by_user_id: int = Field(foreign_key="user.id", index=True)
@@ -56,7 +55,7 @@ class MealPlanSlot(SQLModel, table=True):
     #   - n_servings: how many servings this slot covers (typically facility-wide headcount).
     __tablename__ = "meal_plan_slot"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     meal_plan_id: int = Field(foreign_key="meal_plan.id", index=True)
     day_of_week: int = Field(ge=0, le=6)
     meal_type: MealType

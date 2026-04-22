@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import Enum
-from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
@@ -63,16 +62,16 @@ class Order(SQLModel, table=True):
     #   - notes: free-form string from the submitter (nullable).
     __tablename__ = "order"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     facility_id: int = Field(foreign_key="facility.id", index=True)
     placed_by_user_id: int = Field(foreign_key="user.id", index=True)
-    meal_plan_id: Optional[int] = Field(default=None, foreign_key="meal_plan.id", index=True)
+    meal_plan_id: int | None = Field(default=None, foreign_key="meal_plan.id", index=True)
     status: OrderStatus = Field(default=OrderStatus.PENDING, index=True)
     total_cents: int = Field(default=0)
     submitted_at: datetime = Field(default_factory=datetime.utcnow)
     delivery_date: date = Field(index=True)
     delivery_window_slot: str
-    notes: Optional[str] = Field(default=None)
+    notes: str | None = Field(default=None)
 
 
 class OrderLine(SQLModel, table=True):
@@ -86,7 +85,7 @@ class OrderLine(SQLModel, table=True):
     #   - pricing_source: PricingSource enum per Section 6.
     __tablename__ = "order_line"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     order_id: int = Field(foreign_key="order.id", index=True)
     recipe_id: int = Field(foreign_key="recipe.id", index=True)
     n_servings: int
@@ -105,11 +104,11 @@ class OrderStatusEvent(SQLModel, table=True):
     #   - occurred_at: UTC timestamp (defaults to now on INSERT).
     __tablename__ = "order_status_event"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     order_id: int = Field(foreign_key="order.id", index=True)
-    from_status: Optional[OrderStatus] = Field(default=None)
+    from_status: OrderStatus | None = Field(default=None)
     to_status: OrderStatus
-    note: Optional[str] = Field(default=None)
+    note: str | None = Field(default=None)
     occurred_at: datetime = Field(default_factory=datetime.utcnow)
 
 

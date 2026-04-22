@@ -1,7 +1,35 @@
-{# PSEUDOCODE: Recipe detail page. Title, texture_level, allergens badge list, price,
-   link to /recipes/{id}/ingredients. Phase 4 fills in. #}
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ recipe.title if recipe else "Phase 3 stub" }}</h1>
-<!-- Phase 3 stub; Phase 4 renders full metadata + link to ingredients page -->
+<p class="breadcrumb"><a href="/recipes">&larr; Recipes</a></p>
+<h1>{{ recipe.title }}</h1>
+
+<section class="meta-grid">
+  <div><span class="label">Texture</span> <span>{{ recipe.texture_level }} / 4</span></div>
+  <div><span class="label">Base yield</span> <span>{{ recipe.base_yield }} servings</span></div>
+  <div><span class="label">Prep time</span> <span>{{ recipe.prep_time_minutes }} min</span></div>
+  <div><span class="label">Per serving</span> <span>${{ '%.2f'|format(recipe.cost_cents_per_serving / 100) }}</span></div>
+</section>
+
+<section class="nutrition">
+  <h2>Nutrition (per serving)</h2>
+  <ul class="nutrition-list">
+    <li><span>Carbs</span> <strong>{{ recipe.carbs_g }} g</strong></li>
+    <li><span>Sodium</span> <strong>{{ recipe.sodium_mg }} mg</strong></li>
+    <li><span>Potassium</span> <strong>{{ recipe.potassium_mg }} mg</strong></li>
+    <li><span>Phosphorus</span> <strong>{{ recipe.phosphorus_mg }} mg</strong></li>
+  </ul>
+</section>
+
+<section class="allergens">
+  <h2>Allergens</h2>
+  {% for a in recipe.allergens %}
+    <span class="tag tag-allergen">{{ a }}</span>
+  {% else %}
+    <span class="muted">No declared allergens.</span>
+  {% endfor %}
+</section>
+
+<p class="cta-row">
+  <a class="btn" href="/recipes/{{ recipe.id }}/ingredients">Ingredients ({{ scaled.target_servings }} servings)</a>
+</p>
 {% endblock %}

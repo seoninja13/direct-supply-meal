@@ -12,9 +12,8 @@ IMPLEMENTATION: Phase 4.
 Contract: docs/workflows/DOMAIN-WORKFLOW.md §7.
 """
 
-from datetime import date
-from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Query, Request
+from fastapi.responses import HTMLResponse
 
 # from app.auth.dependencies import require_login
 # from app.services.calendar_view import build_month_grid

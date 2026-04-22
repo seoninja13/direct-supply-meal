@@ -12,8 +12,8 @@ IMPLEMENTATION: Phase 4.
 Contract: docs/workflows/AGENT-WORKFLOW.md §§3-4, §8 fallback.
 """
 
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
 
 # from app.auth.dependencies import require_login
 # from agents.drivers.dispatch import invoke_director

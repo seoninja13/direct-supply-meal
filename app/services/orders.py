@@ -51,7 +51,8 @@ IMPLEMENTATION: Phase 4.
 
 from __future__ import annotations
 
-from typing import Any, Callable, TypedDict
+from collections.abc import Callable
+from typing import Any, TypedDict
 
 # ---------------------------------------------------------------------------
 # Order transition table — DOMAIN-WORKFLOW.md Section 3.

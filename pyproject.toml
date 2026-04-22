@@ -1,8 +1,12 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "direct-supply-meal"
 version = "0.1.0"
 description = "Meal-ordering prototype for senior-living facilities. FastAPI + Jinja2 + SQLite + Claude Agent SDK."
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [{name = "Ivan Dachev", email = "dachevivo@gmail.com"}]
 readme = "README.md"
 
@@ -11,9 +15,9 @@ dependencies = [
   "uvicorn[standard]",
   "jinja2",
   "sqlmodel",
+  "aiosqlite",
   "python-multipart",
   "claude-agent-sdk",
-  "anthropic",
   "python-dotenv",
   "pydantic-settings",
   "python-jose[cryptography]",
@@ -25,24 +29,50 @@ dependencies = [
 dev = [
   "pytest",
   "pytest-asyncio",
+  "pytest-cov",
   "pytest-playwright",
-  "httpx",
   "ruff",
   "mypy",
   "coverage",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "agents*", "wiki*"]
+exclude = ["memory*", "fixtures*", "tests*", "scripts*", "data*", "logs*", ".venv*"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = [
+  ".venv",
+  "data",
+  "logs",
+  "wiki/topics",
+]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP", "N"]
+# E501: long lines (URLs, prompts) are fine.
+# B008: FastAPI's Depends() in default args is the canonical pattern.
+# UP042: `class Foo(str, Enum)` is the explicit form; StrEnum is 3.11+ only.
+# N818: exception suffix naming; OK for domain-specific exceptions in stubs.
+ignore = ["E501", "B008", "UP042", "N818"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["N802", "N803", "N806"]
+"agents/prompts/*" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = "-ra --strict-markers"
+markers = [
+  "unit: pure-function tests, no I/O",
+  "integration: route + DB tests",
+  "agent: agent tests with mocked SDK",
+  "e2e: Playwright browser tests",
+]
 
 [tool.coverage.run]
 source = ["app", "agents", "wiki"]
@@ -53,4 +83,5 @@ exclude_lines = [
   "pragma: no cover",
   "raise NotImplementedError",
   "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
 ]
