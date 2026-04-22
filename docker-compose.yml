@@ -7,6 +7,10 @@ services:
     volumes:
       - /opt/direct-supply-meal/data:/app/data
       - /opt/direct-supply-meal/logs:/app/logs
+      # Claude Agent SDK auth via Claude Max subscription (no metered API key).
+      # OAuth credentials sit on the host at /root/.claude/.credentials.json;
+      # the SDK reads them from /home/appuser/.claude/.credentials.json in the container.
+      - /root/.claude/.credentials.json:/home/appuser/.claude/.credentials.json:ro
     networks:
       - traefik-network
     labels:

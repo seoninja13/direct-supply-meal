@@ -1,9 +1,17 @@
 # Phase 4 Execution Plan — direct-supply-meal
 
-**Status:** DRAFT — awaiting Ivan's review.
+**Status:** APPROVED — ready to execute Slice A.
 **Authored:** 2026-04-22 after a structured pre-flight audit.
 **Entry criteria:** Phase 3 pseudocode complete (HEAD commit `e8177f6`).
 **Exit criteria:** All 8 slices green, `ds-meal.dulocore.com` live, 5-minute demo walkthrough passes without narration.
+
+## External dependency status (updated 2026-04-22)
+
+| Resource | Status | Notes |
+|---|---|---|
+| Clerk "DS-Meal" Development app | ✅ PROVISIONED | Keys pasted into `/opt/direct-supply-meal/.env.ds-meal` on VPS (mode 0600, gitignored). Frontend domain: `ample-honeybee-65.clerk.accounts.dev`. |
+| Claude Max subscription via Claude Agent SDK | ✅ AVAILABLE | **No ANTHROPIC_API_KEY needed.** SDK uses Claude Code OAuth credentials on the host. Original plan was wrong — corrected in this revision. |
+| Cloudflare DNS `ds-meal.dulocore.com` | ✅ LIVE | Created via `/cd-cloudflare` skill, record_id `f91a99572ebdadcde53e2a958ea506c3`. Proxied, 72.60.112.205 origin, Cloudflare edge IPs (104.21.17.151, 172.67.177.11) resolving via 1.1.1.1. Traefik returns 404 until container ships in Slice G — expected. |
 
 ## 1. Purpose and Scope
 
@@ -49,11 +57,11 @@ Phase 4 has three external resources that cannot be provisioned from agent code.
 
 | Resource | Blocks slice | Provisioning steps | ETA |
 |---|---|---|---|
-| **Clerk application `ds-meal-prototype`** | B | 1. Sign into clerk.com. 2. Create new application. 3. Enable Google OAuth ONLY (disable email+password and all other socials). 4. In Development instance settings, copy publishable key + secret key + JWKS URL + sign-in URL. 5. Paste into `.env.ds-meal` on VPS. | ~15 min |
-| **Anthropic metered API key** | D and E | 1. Log into console.anthropic.com. 2. Create new API key labeled `ds-meal`. 3. Set budget cap at $20. 4. Paste `sk-ant-api03-...` into `.env.ds-meal`. | ~5 min |
-| **Cloudflare DNS record `ds-meal.dulocore.com`** | G | Use `/cd-cloudflare` skill (already in CLAUDE.md commands) OR add A-record manually: name=`ds-meal`, target=`72.60.112.205`, proxy=ON. | ~3 min to configure + ~5 min DNS propagation |
+| **Clerk "DS-Meal" Development app** | B | ✅ Provisioned 2026-04-22. Keys in `/opt/direct-supply-meal/.env.ds-meal`. Google OAuth provider needs to be enabled in the Clerk dashboard before first sign-in (Slice B). | Done |
+| **Claude Max subscription via Claude Agent SDK** | D and E | ✅ Available. No metered `ANTHROPIC_API_KEY` — the SDK uses the Claude Code OAuth creds already present on the host. Our Dockerfile needs to mount `/root/.claude/.credentials.json` read-only into the container at runtime so the SDK can authenticate. | Done (Dockerfile update in Slice D) |
+| **Cloudflare DNS `ds-meal.dulocore.com`** | G | ✅ A-record created 2026-04-22 via `/cd-cloudflare` skill. Proxied. Resolves via 1.1.1.1. Traefik returns 404 until Slice G. | Done |
 
-**Recommendation:** provision all three during Slice A so they're ready when needed. DNS especially — propagation takes time; do it first.
+**All three external dependencies are provisioned.** Phase 4 can proceed without blockers. Start with Slice A.
 
 ## 4. Test Pyramid Setup
 
@@ -325,7 +333,7 @@ Every slice commits to `main` when green. No feature branches for this prototype
 - `.claude/hooks/wiki_session_inject.py`
 - Test files: `tests/fixtures/claude_responses.json` (add nl_ordering fixtures), `tests/agent/test_nl_ordering_driver.py`, `tests/agent/test_tools_sdk.py`, `tests/agent/test_observability.py`, `tests/integration/test_wiki_pipeline.py`, `tests/integration/test_orders_api.py` (add POST /new tests), `tests/e2e/test_nl_order_flow.py`
 
-**Dependencies:** Slice C. Anthropic API key set in `.env.ds-meal`.
+**Dependencies:** Slice C. Claude Max subscription via Claude Agent SDK (no API key needed). Dockerfile must mount `/root/.claude/.credentials.json` read-only into the container so the SDK can authenticate against the Max OAuth token.
 
 **Estimated hours:** 5.
 
@@ -549,13 +557,13 @@ See `docs/PHASE-2-ROADMAP.md` for the full 22-item list with seams. Key items an
 
 | # | Question | Required input | Target resolution |
 |---|---|---|---|
-| Q1 | Is the Clerk `ds-meal-prototype` app created yet? | Ivan | Before Slice B |
-| Q2 | Is the Anthropic metered API key provisioned? | Ivan | Before Slice D |
-| Q3 | Is the Cloudflare DNS record for `ds-meal.dulocore.com` live? | Ivan / `/cd-cloudflare` skill | Before Slice G (start during Slice A for propagation) |
-| Q4 | Do we record cassettes from live LLM calls or hand-author canned messages? | Ivan (recommended: hand-author) | Before Slice D |
-| Q5 | Any CI budget for real Anthropic calls? | Ivan (recommended: none; mock everything in CI) | Before Slice D |
-| Q6 | Does `mechanical_soft` rule belong in Phase 1 (add it) or Phase 2 (remove enum)? | Ivan (recommended: add, 5-line fix) | Before Slice E |
-| Q7 | For MealPlan → Order generation — 7 orders/week (one/day) or 21 orders/week (one/meal/day)? | Ivan (recommended: 21 — matches delivery window reality) | Before Slice E |
+| Q1 | ✅ Clerk "DS-Meal" Development app | RESOLVED 2026-04-22 | Keys in `.env.ds-meal` on VPS. Google provider to be enabled in Clerk dashboard before first sign-in test (Slice B). |
+| Q2 | ✅ Anthropic auth path | RESOLVED — **no metered key needed**. Claude Agent SDK uses Claude Max subscription via OAuth creds on the host. Dockerfile mounts `/root/.claude/.credentials.json` read-only. |
+| Q3 | ✅ Cloudflare DNS `ds-meal.dulocore.com` | RESOLVED 2026-04-22 via `/cd-cloudflare` skill. Proxied. |
+| Q4 | LLM test strategy | **DEFAULT applied:** hand-author canned messages in `tests/fixtures/claude_responses.json`. Deterministic, cheap, portable across SDK version changes. |
+| Q5 | CI budget for real LLM calls | **DEFAULT applied:** none. CI mocks the SDK entirely. Real SDK calls happen only on the VPS against the Max subscription (zero marginal cost). |
+| Q6 | `mechanical_soft` rule | **DEFAULT applied:** add a 7th compliance rule `check_mechanical_soft(recipe, resident) → texture_level ≤ 3`. See G8. |
+| Q7 | MealPlan → Order generation cardinality | **DEFAULT applied:** 21 orders/week, one per meal per day. Slot mapping: breakfast→morning_6_8, lunch→midday_11_1, dinner→evening_4_6. See G10. |
 
 ---
 

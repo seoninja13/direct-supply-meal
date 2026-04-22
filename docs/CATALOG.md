@@ -63,6 +63,7 @@ Type key: **Pattern** (code shape ported), **Convention** (doc rule only), **Inf
 | Traefik label block | Ivan | TODO | `docker-compose.yml` labels, joins `root_default` network |
 | Cloudflare DNS record | Ivan | TODO | `ds-meal.dulocore.com` A-record → `72.60.112.205`, proxy ON |
 | SQLite volume (bind-mount) | Ivan | TODO | `/opt/direct-supply-meal/data/ds-meal.db` |
-| GitHub repo | Ivan | IN-PROGRESS | https://github.com/seoninja13/direct-supply-meal |
-| Clerk app (`ds-meal-prototype`) | Ivan | TODO | Clerk dashboard — dedicated tenant, Google provider only, allowlist `admin@dulocore.com` |
-| Anthropic API key (metered) | Ivan | TODO | `.env.ds-meal` on VPS (gitignored), `ANTHROPIC_API_KEY=sk-ant-api03-...` |
+| GitHub repo | Ivan | ACTIVE | https://github.com/seoninja13/direct-supply-meal |
+| Claude Agent SDK auth (Max subscription) | Ivan | ACTIVE | Uses Claude Code OAuth credentials on host; Dockerfile mounts `/root/.claude/.credentials.json` read-only. No metered Anthropic API key. |
+| Clerk "DS-Meal" Development app | Ivan | PROVISIONED | `/opt/direct-supply-meal/.env.ds-meal` (mode 0600, gitignored). Frontend: `ample-honeybee-65.clerk.accounts.dev`. |
+| Cloudflare DNS `ds-meal.dulocore.com` | Ivan | LIVE | Proxied A-record → 72.60.112.205. record_id `f91a99572ebdadcde53e2a958ea506c3`. |

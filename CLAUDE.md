@@ -30,7 +30,7 @@ Every feature ships a working Phase 1 and names the exact Phase 2 graduation sea
 
 ## Hard Rule: No Coupling to DuloCore
 
-direct-supply-meal is a **separate repository** (`seoninja13/direct-supply-meal`) with its own container, SQLite DB, env file, Clerk tenant, and Anthropic API key. The only physical overlap with DuloCore is the shared Traefik ingress and the `root_default` Docker network — that is routing, not coupling. Under no circumstances does this codebase read DuloCore's env, mount DuloCore's volumes, share DuloCore's credentials, or import DuloCore code.
+direct-supply-meal is a **separate repository** (`seoninja13/direct-supply-meal`) with its own container, SQLite DB, env file, and Clerk tenant. Claude Agent SDK authenticates via the Claude Max subscription — no metered Anthropic API key. The only physical overlap with DuloCore is the shared Traefik ingress and the `root_default` Docker network — that is routing, not coupling. Under no circumstances does this codebase read DuloCore's env, mount DuloCore's volumes, share DuloCore's credentials, or import DuloCore code.
 
 ## Quick Links
 
