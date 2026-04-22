@@ -205,14 +205,243 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .status-delivered { background: var(--status-delivered); }
 .status-cancelled { background: var(--status-cancelled); }
 
-/* -------- Calendar (placeholder for Slice C) -------- */
-.calendar { width: 100%; border-collapse: collapse; }
+/* -------- Dashboard (Slice C) -------- */
+.status-tiles {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.status-tiles .tile {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.status-tiles .tile-count {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+.next-delivery {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  background: #eff6ff;
+  border-left: 4px solid var(--status-confirmed);
+  border-radius: 4px;
+}
+
+/* -------- Orders table -------- */
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+.orders-table th, .orders-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.orders-table th {
+  background: #f9fafb;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.orders-table tbody tr:hover { background: #f9fafb; }
+
+.order-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.order-filter select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+  color: var(--muted);
+}
+
+/* -------- Order detail -------- */
+.crumbs { margin-bottom: 0.5rem; }
+.order-meta dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.3rem 1rem;
+  margin: 0.5rem 0 1.5rem;
+}
+.order-meta dt { font-weight: 600; color: var(--muted); }
+
+.order-lines-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+.order-lines-table th, .order-lines-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.pricing-source {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+/* -------- Progress bar -------- */
+.progress-bar {
+  position: relative;
+  height: 28px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+.progress-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--status-pending), var(--status-delivered));
+  transition: width 0.3s ease;
+}
+.progress-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  list-style: none;
+  margin: 0; padding: 0;
+  height: 100%;
+  align-items: center;
+}
+.progress-steps .step {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--fg);
+  padding: 0 0.25rem;
+  text-transform: capitalize;
+  z-index: 1;
+}
+.progress-steps .step-done {
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 0 2px rgba(0,0,0,0.3);
+}
+.progress-cancelled { color: var(--status-cancelled); font-style: italic; }
+
+/* -------- Timeline -------- */
+.order-timeline {
+  list-style: none;
+  padding-left: 1rem;
+  border-left: 3px solid var(--border);
+  margin: 1rem 0;
+}
+.order-timeline .event {
+  position: relative;
+  padding: 0.5rem 0 0.5rem 1rem;
+}
+.order-timeline .event::before {
+  content: "";
+  position: absolute;
+  left: -0.6rem;
+  top: 0.9rem;
+  width: 0.75rem; height: 0.75rem;
+  border-radius: 50%;
+  background: var(--brand);
+}
+.order-timeline .event time {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.order-timeline .event strong { display: block; margin: 0.2rem 0; }
+.order-timeline .event-note {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* -------- Calendar (Slice C) -------- */
+.month-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+.month-label { font-weight: 700; font-size: 1.1rem; }
+
+.calendar { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .calendar th, .calendar td {
   border: 1px solid var(--border);
   padding: 0.5rem;
   vertical-align: top;
-  min-height: 70px;
+  height: 90px;
+}
+.calendar th {
+  background: #f9fafb;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  height: auto;
 }
 .calendar td.today { background: #fff7e6; }
+.calendar td.out-of-month { background: #fafafa; }
+.calendar .day-label { font-weight: 600; margin-bottom: 0.25rem; }
+.calendar .day-orders {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.75rem;
+}
+.calendar .day-orders li { margin-bottom: 0.15rem; }
+.calendar .dot-link { display: inline-flex; align-items: center; gap: 0.2rem; }
+.calendar .dot {
+  display: inline-block;
+  width: 0.7rem; height: 0.7rem;
+  border-radius: 50%;
+}
+.calendar .dot.status-pending { background: var(--status-pending); }
+.calendar .dot.status-confirmed { background: var(--status-confirmed); }
+.calendar .dot.status-in_preparation { background: var(--status-in_preparation); }
+.calendar .dot.status-out_for_delivery { background: var(--status-out_for_delivery); }
+.calendar .dot.status-delivered { background: var(--status-delivered); }
+.calendar .dot.status-cancelled { background: var(--status-cancelled); }
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.calendar-legend .dot {
+  display: inline-block;
+  width: 0.65rem; height: 0.65rem;
+  border-radius: 50%;
+  margin-right: 0.2rem;
+}
+.calendar-legend .dot.status-pending { background: var(--status-pending); }
+.calendar-legend .dot.status-confirmed { background: var(--status-confirmed); }
+.calendar-legend .dot.status-in_preparation { background: var(--status-in_preparation); }
+.calendar-legend .dot.status-out_for_delivery { background: var(--status-out_for_delivery); }
+.calendar-legend .dot.status-delivered { background: var(--status-delivered); }
+.calendar-legend .dot.status-cancelled { background: var(--status-cancelled); }
 
 /* Phase 2 Graduation: CSS framework swap (Tailwind / design tokens) or component library. */

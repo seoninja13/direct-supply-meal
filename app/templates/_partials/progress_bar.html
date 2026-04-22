@@ -1,10 +1,20 @@
-{# PSEUDOCODE: 6-segment horizontal progress bar.
-   Segments: pending, confirmed, in_preparation, out_for_delivery, delivered, (optional cancelled muted).
-   Segments up to and including current status get the .active class. #}
-<div class="progress-bar" data-status="{{ status|default('pending') }}">
-  <span class="seg seg-pending">pending</span>
-  <span class="seg seg-confirmed">confirmed</span>
-  <span class="seg seg-in_preparation">preparing</span>
-  <span class="seg seg-out_for_delivery">out</span>
-  <span class="seg seg-delivered">delivered</span>
+{# 5-segment horizontal progress bar. Pass `status` (string) and `fraction` (0.0–1.0). #}
+<div class="progress-bar" data-status="{{ status }}" aria-label="Order progress">
+  <div class="progress-fill" style="width: {{ (fraction * 100)|round(0, 'floor') }}%"></div>
+  <ol class="progress-steps">
+    {% for step_key, step_label in [
+      ('pending', 'pending'),
+      ('confirmed', 'confirmed'),
+      ('in_preparation', 'preparing'),
+      ('out_for_delivery', 'out'),
+      ('delivered', 'delivered'),
+    ] %}
+      <li class="step step-{{ step_key }}{% if fraction >= loop.index / 5 %} step-done{% endif %}">
+        {{ step_label }}
+      </li>
+    {% endfor %}
+  </ol>
 </div>
+{% if status == 'cancelled' %}
+  <p class="progress-cancelled">This order was cancelled.</p>
+{% endif %}

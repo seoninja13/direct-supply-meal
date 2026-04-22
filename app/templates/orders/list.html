@@ -1,4 +1,58 @@
-{# PSEUDOCODE: Order history. Filter by ?status=. Paginated 25/page.
-   Each row uses partials/status_badge. #}
 {% extends "base.html" %}
-{% block content %}<h1>Orders</h1><!-- Phase 3 stub --><table class="orders">{% include "_partials/status_badge.html" ignore missing %}</table>{% endblock %}
+{% block content %}
+<h1>Orders</h1>
+<p class="subtitle">{{ total }} order{{ 's' if total != 1 else '' }} for your facility.</p>
+
+<form method="get" class="order-filter">
+  <label for="status">Filter by status</label>
+  <select name="status" id="status" onchange="this.form.submit()">
+    <option value="">All</option>
+    {% for s in allowed_statuses %}
+      <option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>
+        {{ s|replace('_', ' ') }}
+      </option>
+    {% endfor %}
+  </select>
+  <noscript><button type="submit">Apply</button></noscript>
+</form>
+
+{% if orders %}
+<table class="orders-table">
+  <thead>
+    <tr>
+      <th>Order</th>
+      <th>Delivery date</th>
+      <th>Status</th>
+      <th>Window</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+    <tr>
+      <td><a href="/orders/{{ o.id }}">#{{ o.id }}</a></td>
+      <td>{{ o.delivery_date }}</td>
+      <td>{% with status=o.status %}{% include "_partials/status_badge.html" %}{% endwith %}</td>
+      <td>{{ o.delivery_window_slot|replace('_', ' ') }}</td>
+      <td>${{ '%.2f' | format(o.total_cents / 100) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if total_pages > 1 %}
+<nav class="pagination">
+  {% if page > 1 %}
+    <a href="?{% if status_filter %}status={{ status_filter }}&amp;{% endif %}page={{ page - 1 }}" rel="prev">&larr; Prev</a>
+  {% endif %}
+  <span>Page {{ page }} of {{ total_pages }}</span>
+  {% if page < total_pages %}
+    <a href="?{% if status_filter %}status={{ status_filter }}&amp;{% endif %}page={{ page + 1 }}" rel="next">Next &rarr;</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="muted">No orders yet.{% if status_filter %} Try clearing the status filter.{% endif %}</p>
+{% endif %}
+{% endblock %}

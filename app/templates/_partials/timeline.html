@@ -1,11 +1,12 @@
-{# PSEUDOCODE: Vertical status-event timeline. Oldest at bottom, most recent at top.
-   Usage: {% include "_partials/timeline.html" %} with `events = order.status_events`. #}
+{# Vertical status-event timeline. Most recent first. Pass `timeline` (list of dicts). #}
 <ol class="order-timeline">
-  {# {% for e in events|reverse %}
-       <li class="event event-{{ e.to_status }}">
-         <time>{{ e.occurred_at }}</time>
-         <strong>{{ e.from_status or "—" }} → {{ e.to_status }}</strong>
-         {% if e.note %}<p>{{ e.note }}</p>{% endif %}
-       </li>
-     {% endfor %} #}
+  {% for e in timeline|reverse %}
+    <li class="event event-{{ e.to }}">
+      <time datetime="{{ e.occurred_at }}">{{ e.occurred_at }}</time>
+      <strong>
+        {{ (e['from'] or '—')|replace('_', ' ') }} &rarr; {{ e.to|replace('_', ' ') }}
+      </strong>
+      {% if e.note %}<p class="event-note">{{ e.note }}</p>{% endif %}
+    </li>
+  {% endfor %}
 </ol>

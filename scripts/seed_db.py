@@ -1,15 +1,18 @@
 """
-PSEUDOCODE:
-1. Load fixtures/*.json and INSERT into SQLite. Slice A scope: recipes + ingredients + RecipeIngredient.
-2. Idempotent on natural keys (recipe.title, ingredient.name, (recipe_id, ingredient_id)).
-3. Slice B/C will extend to facilities, residents, users, demo orders.
+Seed fixtures/*.json into SQLite. Slices A→C scope:
 
-IMPLEMENTATION: Slice A.
+- Slice A: recipes + ingredients + RecipeIngredient.
+- Slice B: facilities + admin user placeholder.
+- Slice C: residents + ResidentDietaryFlag + 5 demo orders with timelines.
+
+Idempotent on natural keys (recipe.title, ingredient.name, facility.name,
+order.id, resident.id). Safe to re-run.
 """
 
 from __future__ import annotations
 
 import json
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -24,10 +27,16 @@ from app.db.init_schema import (
 
 # Ensure SQLModel.metadata sees every table before create_all.
 from app.models import meal_plan as _meal_plan  # noqa: F401
-from app.models import order as _order  # noqa: F401
-from app.models import resident as _resident  # noqa: F401
 from app.models.facility import Facility, FacilityType
+from app.models.order import (
+    Order,
+    OrderLine,
+    OrderStatus,
+    OrderStatusEvent,
+    PricingSource,
+)
 from app.models.recipe import Ingredient, Recipe, RecipeIngredient
+from app.models.resident import DietaryFlag, Resident, ResidentDietaryFlag
 from app.models.user import User
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
@@ -142,6 +151,115 @@ def _seed_recipes(session: Session) -> tuple[int, int]:
     return recipe_count, ingredient_count
 
 
+def _seed_residents(session: Session) -> tuple[int, int]:
+    """Load fixtures/residents.json. Idempotent on Resident.id.
+
+    Returns (residents_inserted, dietary_flag_rows_inserted).
+    """
+    path = FIXTURES_DIR / "residents.json"
+    if not path.exists():
+        return (0, 0)
+    data = _load_json("residents.json")
+
+    r_added = 0
+    f_added = 0
+    for r in data:
+        existing = session.exec(select(Resident).where(Resident.id == r["id"])).first()
+        if existing is not None:
+            continue
+        session.add(
+            Resident(
+                id=r["id"],
+                facility_id=r["facility_id"],
+                demographics=dict(r.get("demographics", {})),
+            )
+        )
+        r_added += 1
+        for flag in r.get("dietary_flags", []):
+            session.add(
+                ResidentDietaryFlag(
+                    resident_id=r["id"],
+                    flag=DietaryFlag(flag),
+                )
+            )
+            f_added += 1
+    session.commit()
+    return r_added, f_added
+
+
+def _parse_iso(value: str) -> datetime:
+    """Parse an ISO-8601 timestamp (trailing Z treated as UTC)."""
+    if value.endswith("Z"):
+        value = value[:-1] + "+00:00"
+    dt = datetime.fromisoformat(value)
+    # Strip tz so it matches the naive UTC datetimes produced elsewhere in Phase 1.
+    return dt.replace(tzinfo=None)
+
+
+def _seed_demo_orders(session: Session) -> tuple[int, int, int]:
+    """Load fixtures/demo_orders.json. Idempotent on Order.id.
+
+    Returns (orders_inserted, order_lines_inserted, status_events_inserted).
+    """
+    path = FIXTURES_DIR / "demo_orders.json"
+    if not path.exists():
+        return (0, 0, 0)
+    data = _load_json("demo_orders.json")
+
+    o_added = 0
+    l_added = 0
+    e_added = 0
+    for o in data:
+        existing = session.exec(select(Order).where(Order.id == o["id"])).first()
+        if existing is not None:
+            continue
+        session.add(
+            Order(
+                id=o["id"],
+                facility_id=o["facility_id"],
+                placed_by_user_id=o["placed_by_user_id"],
+                meal_plan_id=o.get("meal_plan_id"),
+                status=OrderStatus(o["status"]),
+                total_cents=o["total_cents"],
+                submitted_at=_parse_iso(o["submitted_at"]),
+                delivery_date=date.fromisoformat(o["delivery_date"]),
+                delivery_window_slot=o["delivery_window_slot"],
+                notes=o.get("notes"),
+            )
+        )
+        session.flush()
+        o_added += 1
+
+        for ln in o.get("lines", []):
+            session.add(
+                OrderLine(
+                    order_id=o["id"],
+                    recipe_id=ln["recipe_id"],
+                    n_servings=ln["n_servings"],
+                    unit_price_cents=ln["unit_price_cents"],
+                    line_total_cents=ln["line_total_cents"],
+                    pricing_source=PricingSource(ln.get("pricing_source", "static")),
+                )
+            )
+            l_added += 1
+
+        for ev in o.get("status_events", []):
+            session.add(
+                OrderStatusEvent(
+                    order_id=o["id"],
+                    from_status=OrderStatus(ev["from_status"])
+                    if ev.get("from_status")
+                    else None,
+                    to_status=OrderStatus(ev["to_status"]),
+                    note=ev.get("note"),
+                    occurred_at=_parse_iso(ev["occurred_at"]),
+                )
+            )
+            e_added += 1
+    session.commit()
+    return o_added, l_added, e_added
+
+
 def main() -> None:
     # Use a SYNC engine for the script; app runtime uses the async engine.
     engine = create_engine(_sync_url(), future=True)
@@ -162,10 +280,13 @@ def main() -> None:
         f = _seed_facilities(session)
         u = _seed_admin_user_placeholder(session)
         r, i = _seed_recipes(session)
+        res, flags = _seed_residents(session)
+        orders, lines, events = _seed_demo_orders(session)
 
     print(
         f"Seeded: {f} facilities, {u} admin users, {r} recipes, "
-        f"{i} recipe-ingredient links."
+        f"{i} recipe-ingredient links, {res} residents, {flags} dietary flags, "
+        f"{orders} demo orders ({lines} lines, {events} status events)."
     )
 
 

@@ -1,11 +1,57 @@
-{# PSEUDOCODE: Order detail.
-   Top: OrderLine breakdown with unit_price_cents + line_total_cents.
-   Middle: partials/timeline (vertical, oldest-at-bottom) from OrderStatusEvent rows.
-   Bottom: partials/progress_bar (6 segments for 6 statuses). #}
 {% extends "base.html" %}
 {% block content %}
-<h1>Order #{{ order.id if order else "" }}</h1>
-<!-- Phase 3 stub; Phase 4 wires partials -->
-{% include "_partials/progress_bar.html" ignore missing %}
-{% include "_partials/timeline.html" ignore missing %}
+<nav class="crumbs"><a href="/orders">&larr; All orders</a></nav>
+
+<h1>
+  Order #{{ order.id }}
+  {% with status=order.status %}{% include "_partials/status_badge.html" %}{% endwith %}
+</h1>
+
+<section class="order-meta">
+  <dl>
+    <dt>Delivery date</dt><dd>{{ order.delivery_date }}</dd>
+    <dt>Window</dt><dd>{{ order.delivery_window_slot|replace('_', ' ') }}</dd>
+    <dt>Submitted</dt><dd>{{ order.submitted_at }}</dd>
+    <dt>Total</dt><dd>${{ '%.2f' | format(order.total_cents / 100) }}</dd>
+    {% if order.notes %}<dt>Notes</dt><dd>{{ order.notes }}</dd>{% endif %}
+  </dl>
+</section>
+
+<section class="order-progress">
+  <h2>Progress</h2>
+  {% with status=order.status, fraction=progress_fraction %}
+    {% include "_partials/progress_bar.html" %}
+  {% endwith %}
+</section>
+
+<section class="order-lines">
+  <h2>Line items</h2>
+  <table class="order-lines-table">
+    <thead>
+      <tr>
+        <th>Recipe</th>
+        <th>Servings</th>
+        <th>Unit price</th>
+        <th>Line total</th>
+        <th>Pricing</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ln in lines %}
+      <tr>
+        <td><a href="/recipes/{{ ln.recipe_id }}">{{ ln.title }}</a></td>
+        <td>{{ ln.n_servings }}</td>
+        <td>${{ '%.2f' | format(ln.unit_price_cents / 100) }}</td>
+        <td>${{ '%.2f' | format(ln.line_total_cents / 100) }}</td>
+        <td class="pricing-source">{{ ln.pricing_source|replace('_', ' ') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="order-timeline-section">
+  <h2>Timeline</h2>
+  {% include "_partials/timeline.html" %}
+</section>
 {% endblock %}

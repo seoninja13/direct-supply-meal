@@ -1,19 +1,50 @@
-{# PSEUDOCODE: Month calendar grid.
-   Prev/next nav links (?year=&month=).
-   7-column table (Mon..Sun). Each non-zero day cell lists orders by delivery_date with status-colored dots.
-   Today highlighted. #}
 {% extends "base.html" %}
 {% block content %}
 <h1>Delivery calendar</h1>
+
 <nav class="month-nav">
-  <a href="?year={{ grid.prev.year }}&amp;month={{ grid.prev.month }}" rel="prev">&larr; Prev</a>
-  <span>{{ grid.label if grid else "" }}</span>
-  <a href="?year={{ grid.next.year }}&amp;month={{ grid.next.month }}" rel="next">Next &rarr;</a>
+  <a href="?year={{ grid.prev.year }}&amp;month={{ grid.prev.month }}" rel="prev">&larr; {{ grid.prev.month }}/{{ grid.prev.year }}</a>
+  <span class="month-label">{{ month_name }} {{ grid.year }}</span>
+  <a href="?year={{ grid.next.year }}&amp;month={{ grid.next.month }}" rel="next">{{ grid.next.month }}/{{ grid.next.year }} &rarr;</a>
 </nav>
+
 <table class="calendar">
-  <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
+  <thead>
+    <tr>
+      <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+    </tr>
+  </thead>
   <tbody>
-    {# {% for week in grid.weeks %} ... per-day-cell iteration in Phase 4 #}
+    {% for week in grid.weeks %}
+    <tr>
+      {% for cell in week %}
+        <td class="{% if not cell.in_month %}out-of-month{% endif %}{% if cell.is_today %} today{% endif %}">
+          {% if cell.in_month %}
+            <div class="day-label">{{ cell.day_of_month }}</div>
+            {% if cell.orders %}
+              <ul class="day-orders">
+                {% for o in cell.orders %}
+                  <li>
+                    <a href="/orders/{{ o.id }}" class="dot-link">
+                      <span class="dot status-{{ o.status }}" title="{{ o.status|replace('_', ' ') }} · #{{ o.id }}"></span>
+                      #{{ o.id }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {% endif %}
+        </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
   </tbody>
 </table>
+
+<p class="calendar-legend">
+  {% for s in ['pending', 'confirmed', 'in_preparation', 'out_for_delivery', 'delivered', 'cancelled'] %}
+    <span class="dot status-{{ s }}"></span>
+    <span class="legend-label">{{ s|replace('_', ' ') }}</span>
+  {% endfor %}
+</p>
 {% endblock %}

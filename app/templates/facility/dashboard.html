@@ -9,27 +9,63 @@
   signed in as <strong>{{ user.email }}</strong>
 </p>
 {% else %}
-<p class="subtitle">
-  Signed in as <strong>{{ user.email }}</strong>
-</p>
+<p class="subtitle">Signed in as <strong>{{ user.email }}</strong></p>
 {% endif %}
 
-<section class="dashboard-placeholder">
+<section class="dashboard-summary">
   <h2>Active orders</h2>
   {% if active_orders %}
-    {# Slice C fills this in. #}
-  {% else %}
-    <p class="muted">
-      <em>Slice&nbsp;B placeholder.</em> Slice&nbsp;C adds the active-orders
-      summary, status tiles, next delivery, and quick reorder shortcuts.
+    <ul class="status-tiles">
+      {% for s in ['pending', 'confirmed', 'in_preparation', 'out_for_delivery'] %}
+        <li class="tile">
+          {% with status=s %}{% include "_partials/status_badge.html" %}{% endwith %}
+          <strong class="tile-count">{{ status_counts.get(s, 0) }}</strong>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if next_delivery %}
+    <p class="next-delivery">
+      <span class="muted">Next delivery:</span>
+      <a href="/orders/{{ next_delivery.id }}">
+        #{{ next_delivery.id }} on {{ next_delivery.delivery_date }}
+      </a>
+      ({{ next_delivery.delivery_window_slot|replace('_', ' ') }})
     </p>
+    {% endif %}
+
+    <h3>Upcoming &amp; in-flight</h3>
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Delivery date</th>
+          <th>Status</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in active_orders %}
+        <tr>
+          <td><a href="/orders/{{ o.id }}">#{{ o.id }}</a></td>
+          <td>{{ o.delivery_date }}</td>
+          <td>{% with status=o.status %}{% include "_partials/status_badge.html" %}{% endwith %}</td>
+          <td>${{ '%.2f' | format(o.total_cents / 100) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No active orders right now.</p>
   {% endif %}
 </section>
 
 <section class="dashboard-quicklinks">
   <h2>Quick links</h2>
   <ul>
-    <li><a href="/recipes">Browse the recipe catalog</a></li>
+    <li><a href="/orders">Order history</a></li>
+    <li><a href="/calendar">Delivery calendar</a></li>
+    <li><a href="/recipes">Recipe catalog</a></li>
   </ul>
 </section>
 {% endblock %}
