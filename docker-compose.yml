@@ -1,0 +1,34 @@
+services:
+  ds-meal:
+    build: .
+    container_name: ds-meal
+    restart: unless-stopped
+    env_file: .env.ds-meal
+    volumes:
+      - /opt/direct-supply-meal/data:/app/data
+      - /opt/direct-supply-meal/logs:/app/logs
+    networks:
+      - traefik-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=root_default
+      - "traefik.http.routers.ds-meal.rule=Host(`ds-meal.dulocore.com`)"
+      - traefik.http.routers.ds-meal.tls=true
+      - traefik.http.routers.ds-meal.entrypoints=web,websecure
+      - traefik.http.routers.ds-meal.tls.certresolver=mytlschallenge
+      - traefik.http.services.ds-meal.loadbalancer.server.port=8000
+      - traefik.http.services.ds-meal.loadbalancer.healthcheck.path=/health
+      - traefik.http.services.ds-meal.loadbalancer.healthcheck.interval=30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+networks:
+  traefik-network:
+    external: true
+    name: root_default
+
+# Phase 2 Graduation:
+#   - Add optional redis sidecar (scoped to ds-meal-only network) when caching is needed.
+#   - Add optional Inngest worker container when event bus ships. Seam: new service block.

@@ -1,0 +1,7 @@
+{# PSEUDOCODE: Recipe detail page. Title, texture_level, allergens badge list, price,
+   link to /recipes/{id}/ingredients. Phase 4 fills in. #}
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ recipe.title if recipe else "Phase 3 stub" }}</h1>
+<!-- Phase 3 stub; Phase 4 renders full metadata + link to ingredients page -->
+{% endblock %}

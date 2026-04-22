@@ -1,0 +1,4 @@
+{# PSEUDOCODE: Order history. Filter by ?status=. Paginated 25/page.
+   Each row uses partials/status_badge. #}
+{% extends "base.html" %}
+{% block content %}<h1>Orders</h1><!-- Phase 3 stub --><table class="orders">{% include "_partials/status_badge.html" ignore missing %}</table>{% endblock %}

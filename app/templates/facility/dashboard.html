@@ -1,0 +1,8 @@
+{# PSEUDOCODE: Post-sign-in landing. Shows active orders summary tiles + next delivery + quick reorder links.
+   Uses partials/status_badge for each order tile. #}
+{% extends "base.html" %}
+{% block content %}
+<h1>Welcome, {{ user.email if user else "admin" }}</h1>
+<p>Facility: {{ facility.name if facility else "Phase 3 stub" }}</p>
+<!-- Phase 3 stub; Phase 4 iterates active_orders into tiles -->
+{% endblock %}

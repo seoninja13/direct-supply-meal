@@ -1,0 +1,207 @@
+[
+  {
+    "id": 1,
+    "title": "Chicken Stir-Fry",
+    "texture_level": 0,
+    "allergens": ["soy"],
+    "cost_cents_per_serving": 420,
+    "prep_time_minutes": 25,
+    "base_yield": 2,
+    "carbs_g": 38,
+    "sodium_mg": 780,
+    "potassium_mg": 520,
+    "phosphorus_mg": 210,
+    "ingredients": [
+      {"name": "olive oil", "grams": 30, "allergen_tags": []},
+      {"name": "chicken breast", "grams": 200, "allergen_tags": []},
+      {"name": "broccoli florets", "grams": 500, "allergen_tags": []},
+      {"name": "red bell pepper", "grams": 250, "allergen_tags": []},
+      {"name": "soy sauce", "grams": 60, "allergen_tags": ["soy", "gluten"]},
+      {"name": "garlic", "grams": 10, "allergen_tags": []},
+      {"name": "ginger", "grams": 5, "allergen_tags": []}
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Veggie Omelette",
+    "texture_level": 1,
+    "allergens": ["egg", "dairy"],
+    "cost_cents_per_serving": 310,
+    "prep_time_minutes": 12,
+    "base_yield": 1,
+    "carbs_g": 22,
+    "sodium_mg": 410,
+    "potassium_mg": 340,
+    "phosphorus_mg": 180,
+    "ingredients": [
+      {"name": "large eggs", "grams": 100, "allergen_tags": ["egg"]},
+      {"name": "diced onion", "grams": 40, "allergen_tags": []},
+      {"name": "diced tomato", "grams": 50, "allergen_tags": []},
+      {"name": "spinach leaves", "grams": 20, "allergen_tags": []},
+      {"name": "olive oil", "grams": 15, "allergen_tags": []},
+      {"name": "small corn tortillas", "grams": 150, "allergen_tags": []},
+      {"name": "salt and pepper", "grams": 3, "allergen_tags": []}
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Overnight Oats",
+    "texture_level": 1,
+    "allergens": ["dairy", "gluten"],
+    "cost_cents_per_serving": 280,
+    "prep_time_minutes": 5,
+    "base_yield": 4,
+    "carbs_g": 48,
+    "sodium_mg": 95,
+    "potassium_mg": 300,
+    "phosphorus_mg": 155,
+    "ingredients": [
+      {"name": "rolled oats", "grams": 160, "allergen_tags": ["gluten"]},
+      {"name": "almond milk", "grams": 1000, "allergen_tags": ["nuts"]},
+      {"name": "chia seeds", "grams": 70, "allergen_tags": []},
+      {"name": "honey", "grams": 60, "allergen_tags": []},
+      {"name": "blueberries", "grams": 300, "allergen_tags": []}
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Baked Cod + Rice",
+    "texture_level": 1,
+    "allergens": ["fish"],
+    "cost_cents_per_serving": 540,
+    "prep_time_minutes": 30,
+    "base_yield": 2,
+    "carbs_g": 42,
+    "sodium_mg": 460,
+    "potassium_mg": 580,
+    "phosphorus_mg": 240,
+    "ingredients": [
+      {"name": "cod fillet", "grams": 300, "allergen_tags": ["fish"]},
+      {"name": "white rice", "grams": 200, "allergen_tags": []},
+      {"name": "lemon", "grams": 60, "allergen_tags": []},
+      {"name": "olive oil", "grams": 20, "allergen_tags": []},
+      {"name": "parsley", "grams": 8, "allergen_tags": []}
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Beef Stew",
+    "texture_level": 2,
+    "allergens": ["gluten"],
+    "cost_cents_per_serving": 510,
+    "prep_time_minutes": 90,
+    "base_yield": 4,
+    "carbs_g": 32,
+    "sodium_mg": 720,
+    "potassium_mg": 680,
+    "phosphorus_mg": 255,
+    "ingredients": [
+      {"name": "stew beef", "grams": 600, "allergen_tags": []},
+      {"name": "carrots", "grams": 300, "allergen_tags": []},
+      {"name": "potatoes", "grams": 400, "allergen_tags": []},
+      {"name": "onion", "grams": 120, "allergen_tags": []},
+      {"name": "beef broth", "grams": 800, "allergen_tags": ["gluten"]},
+      {"name": "flour", "grams": 30, "allergen_tags": ["gluten"]}
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Pureed Chicken + Sweet Potato",
+    "texture_level": 4,
+    "allergens": [],
+    "cost_cents_per_serving": 460,
+    "prep_time_minutes": 35,
+    "base_yield": 2,
+    "carbs_g": 36,
+    "sodium_mg": 320,
+    "potassium_mg": 720,
+    "phosphorus_mg": 200,
+    "ingredients": [
+      {"name": "chicken breast", "grams": 200, "allergen_tags": []},
+      {"name": "sweet potato", "grams": 300, "allergen_tags": []},
+      {"name": "chicken broth", "grams": 400, "allergen_tags": []},
+      {"name": "butter", "grams": 20, "allergen_tags": ["dairy"]}
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Turkey Meatloaf",
+    "texture_level": 1,
+    "allergens": ["egg", "gluten"],
+    "cost_cents_per_serving": 480,
+    "prep_time_minutes": 55,
+    "base_yield": 3,
+    "carbs_g": 26,
+    "sodium_mg": 590,
+    "potassium_mg": 540,
+    "phosphorus_mg": 235,
+    "ingredients": [
+      {"name": "ground turkey", "grams": 500, "allergen_tags": []},
+      {"name": "breadcrumbs", "grams": 80, "allergen_tags": ["gluten"]},
+      {"name": "egg", "grams": 50, "allergen_tags": ["egg"]},
+      {"name": "ketchup", "grams": 40, "allergen_tags": []},
+      {"name": "onion", "grams": 80, "allergen_tags": []}
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Lentil Soup",
+    "texture_level": 1,
+    "allergens": [],
+    "cost_cents_per_serving": 260,
+    "prep_time_minutes": 40,
+    "base_yield": 4,
+    "carbs_g": 44,
+    "sodium_mg": 380,
+    "potassium_mg": 650,
+    "phosphorus_mg": 210,
+    "ingredients": [
+      {"name": "red lentils", "grams": 300, "allergen_tags": []},
+      {"name": "carrot", "grams": 150, "allergen_tags": []},
+      {"name": "celery", "grams": 100, "allergen_tags": []},
+      {"name": "onion", "grams": 120, "allergen_tags": []},
+      {"name": "vegetable broth", "grams": 1200, "allergen_tags": []},
+      {"name": "cumin", "grams": 5, "allergen_tags": []}
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Fruit & Yogurt Parfait",
+    "texture_level": 1,
+    "allergens": ["dairy"],
+    "cost_cents_per_serving": 320,
+    "prep_time_minutes": 5,
+    "base_yield": 1,
+    "carbs_g": 38,
+    "sodium_mg": 60,
+    "potassium_mg": 340,
+    "phosphorus_mg": 175,
+    "ingredients": [
+      {"name": "greek yogurt", "grams": 200, "allergen_tags": ["dairy"]},
+      {"name": "mixed berries", "grams": 150, "allergen_tags": []},
+      {"name": "granola", "grams": 40, "allergen_tags": ["gluten", "nuts"]},
+      {"name": "honey", "grams": 15, "allergen_tags": []}
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Shepherd's Pie",
+    "texture_level": 2,
+    "allergens": ["dairy", "gluten"],
+    "cost_cents_per_serving": 560,
+    "prep_time_minutes": 60,
+    "base_yield": 4,
+    "carbs_g": 48,
+    "sodium_mg": 640,
+    "potassium_mg": 720,
+    "phosphorus_mg": 270,
+    "ingredients": [
+      {"name": "ground lamb", "grams": 500, "allergen_tags": []},
+      {"name": "mashed potatoes", "grams": 600, "allergen_tags": ["dairy"]},
+      {"name": "peas and carrots", "grams": 300, "allergen_tags": []},
+      {"name": "onion", "grams": 100, "allergen_tags": []},
+      {"name": "beef gravy", "grams": 200, "allergen_tags": ["gluten"]},
+      {"name": "butter", "grams": 30, "allergen_tags": ["dairy"]}
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+{# PSEUDOCODE: Order detail.
+   Top: OrderLine breakdown with unit_price_cents + line_total_cents.
+   Middle: partials/timeline (vertical, oldest-at-bottom) from OrderStatusEvent rows.
+   Bottom: partials/progress_bar (6 segments for 6 statuses). #}
+{% extends "base.html" %}
+{% block content %}
+<h1>Order #{{ order.id if order else "" }}</h1>
+<!-- Phase 3 stub; Phase 4 wires partials -->
+{% include "_partials/progress_bar.html" ignore missing %}
+{% include "_partials/timeline.html" ignore missing %}
+{% endblock %}

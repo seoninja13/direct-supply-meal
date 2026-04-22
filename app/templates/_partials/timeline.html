@@ -1,0 +1,11 @@
+{# PSEUDOCODE: Vertical status-event timeline. Oldest at bottom, most recent at top.
+   Usage: {% include "_partials/timeline.html" %} with `events = order.status_events`. #}
+<ol class="order-timeline">
+  {# {% for e in events|reverse %}
+       <li class="event event-{{ e.to_status }}">
+         <time>{{ e.occurred_at }}</time>
+         <strong>{{ e.from_status or "—" }} → {{ e.to_status }}</strong>
+         {% if e.note %}<p>{{ e.note }}</p>{% endif %}
+       </li>
+     {% endfor %} #}
+</ol>

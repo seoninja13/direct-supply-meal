@@ -1,0 +1,13 @@
+{# PSEUDOCODE: NL ordering page.
+   State A: empty textarea + Submit → POSTs to /orders/new.
+   State B: proposal card returned from agent (awaiting_confirmation) → Confirm button POSTs with confirm=true + trace_id.
+   State C: error card → link to /orders/new?mode=form (deterministic fallback when LLM unavailable). #}
+{% extends "base.html" %}
+{% block content %}
+<h1>Place an order</h1>
+<form method="post" action="/orders/new">
+  <textarea name="text" placeholder="e.g. 50 Overnight Oats for Tuesday breakfast"></textarea>
+  <button type="submit">Submit</button>
+</form>
+<!-- Phase 3 stub; Phase 4 renders proposal card after agent turn 1 -->
+{% endblock %}

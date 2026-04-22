@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "name": "Oakwood Manor",
+    "type": "AL",
+    "bed_count": 80,
+    "admin_email": null
+  },
+  {
+    "id": 2,
+    "name": "Riverside SNF",
+    "type": "SNF",
+    "bed_count": 120,
+    "admin_email": "admin@dulocore.com"
+  },
+  {
+    "id": 3,
+    "name": "Cedar Pines Memory Care",
+    "type": "MC",
+    "bed_count": 45,
+    "admin_email": null
+  },
+  {
+    "id": 4,
+    "name": "Harbor View",
+    "type": "IL",
+    "bed_count": 150,
+    "admin_email": null
+  },
+  {
+    "id": 5,
+    "name": "Sunset Village SNF",
+    "type": "SNF",
+    "bed_count": 90,
+    "admin_email": null
+  }
+]

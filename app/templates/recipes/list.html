@@ -1,0 +1,15 @@
+{# PSEUDOCODE: Public recipe list (kata baseline).
+   Table of 10 recipes with title, texture_level, per-serving price. Each row links to /recipes/{id}.
+   IMPLEMENTATION: Phase 4. #}
+{% extends "base.html" %}
+{% block title %}Recipes — ds-meal{% endblock %}
+{% block content %}
+<h1>Recipes</h1>
+<p><!-- Phase 3 stub: iterate {{ recipes }} here in Phase 4 --></p>
+<table class="recipe-list">
+  <thead><tr><th>Title</th><th>Texture</th><th>Allergens</th><th>Per serving</th></tr></thead>
+  <tbody>
+    {# {% for r in recipes %} ... {% endfor %} #}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,3 @@
+{# PSEUDOCODE: Status-colored pill. CSS class by status.
+   Usage: {% include "_partials/status_badge.html" with context %} setting `status`. #}
+<span class="status-badge status-{{ status|default('pending') }}">{{ status|default('pending')|replace('_', ' ') }}</span>

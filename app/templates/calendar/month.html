@@ -1,0 +1,19 @@
+{# PSEUDOCODE: Month calendar grid.
+   Prev/next nav links (?year=&month=).
+   7-column table (Mon..Sun). Each non-zero day cell lists orders by delivery_date with status-colored dots.
+   Today highlighted. #}
+{% extends "base.html" %}
+{% block content %}
+<h1>Delivery calendar</h1>
+<nav class="month-nav">
+  <a href="?year={{ grid.prev.year }}&amp;month={{ grid.prev.month }}" rel="prev">&larr; Prev</a>
+  <span>{{ grid.label if grid else "" }}</span>
+  <a href="?year={{ grid.next.year }}&amp;month={{ grid.next.month }}" rel="next">Next &rarr;</a>
+</nav>
+<table class="calendar">
+  <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
+  <tbody>
+    {# {% for week in grid.weeks %} ... per-day-cell iteration in Phase 4 #}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,104 @@
+[
+  {
+    "id": 101,
+    "facility_id": 2,
+    "placed_by_user_id": 1,
+    "meal_plan_id": null,
+    "status": "delivered",
+    "total_cents": 25200,
+    "submitted_at": "2026-04-15T09:12:00Z",
+    "delivery_date": "2026-04-16",
+    "delivery_window_slot": "midday_11_1",
+    "notes": "Lunch tray delivery, routine weekly order.",
+    "lines": [
+      {"recipe_id": 1, "n_servings": 60, "unit_price_cents": 420, "line_total_cents": 25200, "pricing_source": "static"}
+    ],
+    "status_events": [
+      {"from_status": null,              "to_status": "pending",          "occurred_at": "2026-04-15T09:12:00Z", "note": "Order submitted."},
+      {"from_status": "pending",         "to_status": "confirmed",        "occurred_at": "2026-04-15T10:30:00Z", "note": "Commissary accepted."},
+      {"from_status": "confirmed",       "to_status": "in_preparation",   "occurred_at": "2026-04-16T05:00:00Z", "note": "Kitchen started prep."},
+      {"from_status": "in_preparation",  "to_status": "out_for_delivery", "occurred_at": "2026-04-16T10:15:00Z", "note": "Truck loaded."},
+      {"from_status": "out_for_delivery","to_status": "delivered",        "occurred_at": "2026-04-16T11:45:00Z", "note": "Delivered to dock. Signed by M. Johnson."}
+    ]
+  },
+  {
+    "id": 102,
+    "facility_id": 2,
+    "placed_by_user_id": 1,
+    "meal_plan_id": null,
+    "status": "out_for_delivery",
+    "total_cents": 33600,
+    "submitted_at": "2026-04-20T14:00:00Z",
+    "delivery_date": "2026-04-22",
+    "delivery_window_slot": "morning_6_8",
+    "notes": "Breakfast tray for full facility.",
+    "lines": [
+      {"recipe_id": 3, "n_servings": 120, "unit_price_cents": 280, "line_total_cents": 33600, "pricing_source": "static"}
+    ],
+    "status_events": [
+      {"from_status": null,              "to_status": "pending",          "occurred_at": "2026-04-20T14:00:00Z", "note": "Order submitted."},
+      {"from_status": "pending",         "to_status": "confirmed",        "occurred_at": "2026-04-20T15:42:00Z", "note": "Commissary accepted."},
+      {"from_status": "confirmed",       "to_status": "in_preparation",   "occurred_at": "2026-04-22T04:30:00Z", "note": "Kitchen started prep."},
+      {"from_status": "in_preparation",  "to_status": "out_for_delivery", "occurred_at": "2026-04-22T06:05:00Z", "note": "Truck departed commissary."}
+    ]
+  },
+  {
+    "id": 103,
+    "facility_id": 2,
+    "placed_by_user_id": 1,
+    "meal_plan_id": null,
+    "status": "in_preparation",
+    "total_cents": 40800,
+    "submitted_at": "2026-04-21T11:30:00Z",
+    "delivery_date": "2026-04-23",
+    "delivery_window_slot": "evening_4_6",
+    "notes": "Dinner entree for skilled-nursing wing.",
+    "lines": [
+      {"recipe_id": 5, "n_servings": 80, "unit_price_cents": 510, "line_total_cents": 40800, "pricing_source": "llm_refined"}
+    ],
+    "status_events": [
+      {"from_status": null,              "to_status": "pending",          "occurred_at": "2026-04-21T11:30:00Z", "note": "Order submitted via NL ordering agent."},
+      {"from_status": "pending",         "to_status": "confirmed",        "occurred_at": "2026-04-21T12:15:00Z", "note": "Commissary accepted."},
+      {"from_status": "confirmed",       "to_status": "in_preparation",   "occurred_at": "2026-04-23T03:00:00Z", "note": "Kitchen started prep (90 min cook time)."}
+    ]
+  },
+  {
+    "id": 104,
+    "facility_id": 2,
+    "placed_by_user_id": 1,
+    "meal_plan_id": 1,
+    "status": "confirmed",
+    "total_cents": 52800,
+    "submitted_at": "2026-04-22T08:45:00Z",
+    "delivery_date": "2026-04-25",
+    "delivery_window_slot": "midday_11_1",
+    "notes": "Multi-line MealPlan Tuesday delivery: stew + lentil soup + cod.",
+    "lines": [
+      {"recipe_id": 5, "n_servings": 40, "unit_price_cents": 510, "line_total_cents": 20400, "pricing_source": "llm_refined"},
+      {"recipe_id": 8, "n_servings": 40, "unit_price_cents": 260, "line_total_cents": 10400, "pricing_source": "static"},
+      {"recipe_id": 4, "n_servings": 40, "unit_price_cents": 540, "line_total_cents": 21600, "pricing_source": "llm_refined"}
+    ],
+    "status_events": [
+      {"from_status": null,      "to_status": "pending",   "occurred_at": "2026-04-22T08:45:00Z", "note": "Generated from weekly MealPlan."},
+      {"from_status": "pending", "to_status": "confirmed", "occurred_at": "2026-04-22T09:20:00Z", "note": "Commissary accepted."}
+    ]
+  },
+  {
+    "id": 105,
+    "facility_id": 2,
+    "placed_by_user_id": 1,
+    "meal_plan_id": null,
+    "status": "pending",
+    "total_cents": 22400,
+    "submitted_at": "2026-04-22T07:10:00Z",
+    "delivery_date": "2026-04-24",
+    "delivery_window_slot": "morning_6_8",
+    "notes": "Breakfast parfait via NL ordering agent.",
+    "lines": [
+      {"recipe_id": 9, "n_servings": 70, "unit_price_cents": 320, "line_total_cents": 22400, "pricing_source": "llm_refined"}
+    ],
+    "status_events": [
+      {"from_status": null, "to_status": "pending", "occurred_at": "2026-04-22T07:10:00Z", "note": "Order submitted; awaiting commissary confirmation."}
+    ]
+  }
+]

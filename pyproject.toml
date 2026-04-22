@@ -1,0 +1,56 @@
+[project]
+name = "direct-supply-meal"
+version = "0.1.0"
+description = "Meal-ordering prototype for senior-living facilities. FastAPI + Jinja2 + SQLite + Claude Agent SDK."
+requires-python = ">=3.11"
+authors = [{name = "Ivan Dachev", email = "dachevivo@gmail.com"}]
+readme = "README.md"
+
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "jinja2",
+  "sqlmodel",
+  "python-multipart",
+  "claude-agent-sdk",
+  "anthropic",
+  "python-dotenv",
+  "pydantic-settings",
+  "python-jose[cryptography]",
+  "httpx",
+  "PyYAML",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-asyncio",
+  "pytest-playwright",
+  "httpx",
+  "ruff",
+  "mypy",
+  "coverage",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "N"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["app", "agents", "wiki"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]

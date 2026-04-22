@@ -1,0 +1,10 @@
+{# PSEUDOCODE: 6-segment horizontal progress bar.
+   Segments: pending, confirmed, in_preparation, out_for_delivery, delivered, (optional cancelled muted).
+   Segments up to and including current status get the .active class. #}
+<div class="progress-bar" data-status="{{ status|default('pending') }}">
+  <span class="seg seg-pending">pending</span>
+  <span class="seg seg-confirmed">confirmed</span>
+  <span class="seg seg-in_preparation">preparing</span>
+  <span class="seg seg-out_for_delivery">out</span>
+  <span class="seg seg-delivered">delivered</span>
+</div>

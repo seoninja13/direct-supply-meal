@@ -1,0 +1,46 @@
+/* PSEUDOCODE:
+ * 1. CSS variables for the 6 order-status colors.
+ * 2. Basic typography + responsive container.
+ * 3. Nav bar, cards, tables, status badges, timeline grid, calendar grid.
+ * 4. No JS-dependent styles. Mobile-first, ~500 lines max.
+ *
+ * IMPLEMENTATION: Phase 4. Below is structural placeholder only.
+ */
+
+/* PSEUDO: status colors */
+:root {
+  --status-pending: #e0a80f;
+  --status-confirmed: #2c7be5;
+  --status-in_preparation: #7e3af2;
+  --status-out_for_delivery: #00a1b5;
+  --status-delivered: #0aab53;
+  --status-cancelled: #8a94a6;
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+}
+
+/* PSEUDO: base layout placeholder */
+body { margin: 0; font-family: system-ui, sans-serif; color: var(--fg); background: var(--bg); }
+.topnav { display: flex; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border); }
+main { padding: 1rem; max-width: 960px; margin: 0 auto; }
+
+/* PSEUDO: status-badge classes map to CSS vars above. Phase 4 fills complete rules. */
+.status-badge { padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.75rem; }
+.status-pending { background: var(--status-pending); color: white; }
+.status-confirmed { background: var(--status-confirmed); color: white; }
+.status-in_preparation { background: var(--status-in_preparation); color: white; }
+.status-out_for_delivery { background: var(--status-out_for_delivery); color: white; }
+.status-delivered { background: var(--status-delivered); color: white; }
+.status-cancelled { background: var(--status-cancelled); color: white; }
+
+/* PSEUDO: calendar grid skeleton — Phase 4 adds per-cell rules */
+.calendar { width: 100%; border-collapse: collapse; }
+.calendar th, .calendar td { border: 1px solid var(--border); padding: 0.5rem; vertical-align: top; }
+.calendar td.today { background: #fff7e6; }
+
+/* Phase 2 Graduation:
+ *   - Swap to a CSS framework (Tailwind / vanilla-css or custom design tokens).
+ *   - If React frontend graduates, most rules here are thrown away; keep tokens.
+ */
