@@ -1,0 +1,30 @@
+version: 1
+
+compilation:
+  threshold: 3              # min traces in a cluster to merit a topic page
+  batch_size: 100           # max traces per agent per compile
+  model: claude-haiku-4-5   # synthesis model
+  max_topic_tokens: 1200    # hard cap per page
+
+type_strategies:
+  feedback:
+    format: rule-list
+    instruction: "Extract actionable rules the agent should follow next time."
+  project:
+    format: narrative
+    instruction: "Describe the project's recurring patterns in 2-3 paragraphs."
+  reference:
+    format: link-card
+    instruction: "Produce a short lookup table of alias -> canonical mappings."
+  user:
+    format: profile
+    instruction: "Summarize the user's preferences and shorthand conventions."
+
+lint:
+  enabled: false            # Phase 1: disabled. Phase 2: 7-point suite enabled.
+
+# Phase 2 Graduation:
+#   - lint.enabled: true + new rules (duplicates, contradictions, staleness, orphans,
+#     broken_links, size_violations, consistency_drift).
+#   - Add memory types: observation, decision (→ 6-type schema).
+#   - Add `embeddings` section configuring MiniLM for vector clustering.
