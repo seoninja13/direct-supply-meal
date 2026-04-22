@@ -1,19 +1,19 @@
 """
-Gated order routes — history (/orders), detail (/orders/{id}), plus JSON twins.
+Gated order routes — history, detail, NL ordering (Slice D), plus JSON twins.
 
-`/orders/new` (NL Ordering agent) is a Slice D surface and returns 501 here.
-
-Contract: DOMAIN-WORKFLOW.md §4 J5 + §3 state machine.
+Contract: DOMAIN-WORKFLOW.md §4 J5 + §3 state machine + §4 J4 (NL ordering).
 """
 
 from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from agents.depth_scorer import score_query
+from agents.drivers import dispatch as _dispatch_mod
 from app.auth.dependencies import CurrentUser, require_facility_access, require_login
 from app.db.database import get_session
 from app.services.orders import (
@@ -94,8 +94,8 @@ async def list_orders_json(
     return JSONResponse(page_data)
 
 
-# --- Slice D surfaces — declared BEFORE /orders/{order_id} so "new" isn't
-# parsed as an int path param. Return 501 for now; Slice D fills in the body. ---
+# --- NL Ordering surfaces (Slice D). `/orders/new` routes MUST be declared
+# BEFORE `/orders/{order_id}` so FastAPI doesn't try to parse "new" as an int. ---
 
 @router.get("/orders/new", response_class=HTMLResponse)
 async def new_order_form(
@@ -103,9 +103,18 @@ async def new_order_form(
     user: Annotated[CurrentUser, Depends(require_login)],
     trace_id: str | None = Query(None),
 ):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="NL Ordering agent ships with Slice D",
+    return request.app.state.templates.TemplateResponse(
+        request=request,
+        name="orders/new.html",
+        context={
+            "page_title": "New order — ds-meal",
+            "user": user,
+            "text": "",
+            "proposal": None,
+            "trace_id": trace_id,
+            "error": None,
+            "options": None,
+        },
     )
 
 
@@ -113,10 +122,47 @@ async def new_order_form(
 async def submit_order(
     request: Request,
     user: Annotated[CurrentUser, Depends(require_login)],
+    text: Annotated[str, Form(...)] = "",
+    trace_id: Annotated[str | None, Form()] = None,
+    confirm: Annotated[str | None, Form()] = None,
 ):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="NL Ordering agent ships with Slice D",
+    """Two-phase NL ordering: text → proposal card (awaiting_confirmation),
+    then Confirm → redirect to /orders/{id}. Depth score logged once per route
+    call (G13).
+    """
+    # G13: score_query runs once here (advisory; Phase 1 logs only).
+    score_query(text)
+
+    result = await _dispatch_mod.invoke_director(
+        "nl_ordering",
+        {
+            "text": text,
+            "user_id": user.user_id,
+            "facility_id": user.facility_id,
+            "trace_id": trace_id,
+            "confirm": bool(confirm),
+        },
+    )
+
+    if result["status"] == "pending" and result.get("order_id"):
+        return RedirectResponse(
+            url=f"/orders/{result['order_id']}",
+            status_code=303,
+        )
+
+    return request.app.state.templates.TemplateResponse(
+        request=request,
+        name="orders/new.html",
+        context={
+            "page_title": "New order — ds-meal",
+            "user": user,
+            "text": text,
+            "proposal": result.get("proposal"),
+            "trace_id": result.get("trace_id"),
+            "error": result.get("error"),
+            "options": result.get("options"),
+            "status": result["status"],
+        },
     )
 
 
@@ -124,11 +170,28 @@ async def submit_order(
 async def create_order_json(
     request: Request,
     user: Annotated[CurrentUser, Depends(require_login)],
+    payload: Annotated[dict | None, None] = None,
 ):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="NL Ordering agent ships with Slice D",
+    """JSON twin of POST /orders/new — takes JSON `{text, trace_id?, confirm?}`
+    and returns the dispatch result dict. Phase 2 surface; Phase 1 tests use it
+    to verify the driver plumbing without Jinja.
+    """
+    body = await request.json()
+    text = str(body.get("text", ""))
+    score_query(text)
+    result = await _dispatch_mod.invoke_director(
+        "nl_ordering",
+        {
+            "text": text,
+            "user_id": user.user_id,
+            "facility_id": user.facility_id,
+            "trace_id": body.get("trace_id"),
+            "confirm": bool(body.get("confirm", False)),
+        },
     )
+    # Strip raw tool_calls detail from API response — internal-only.
+    result.pop("tool_calls", None)
+    return JSONResponse(result)
 
 
 @router.get("/orders/{order_id}", response_class=HTMLResponse)

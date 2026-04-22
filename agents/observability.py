@@ -1,39 +1,30 @@
 """
-agents/observability.py — Trace ingestion for Layer 1 of the Karpathy Auto-Research loop.
+agents/observability.py — Karpathy Auto-Research Layer 1 trace ingestion.
 
-PSEUDOCODE (Phase 3 stub — no behavior).
+`record_outcome(trace_row)` is called from every agent driver's `finally` block.
+Writes one row to the SQLite `agent_trace` table AND one JSONL line to
+`logs/agent_trace.jsonl`. Optionally dumps full payload JSON to
+`logs/agent_payloads/{trace_id}.json`.
 
-Implements the single entry point `record_outcome(trace_row)` called from every
-agent driver in a `finally` block. Writes one row to the SQLite `agent_trace`
-table AND one JSONL line to `logs/agent_trace.jsonl`. Optionally dumps full
-payloads to `logs/agent_payloads/{trace_id}.json`.
-
-Per KARPATHY-AUTO-RESEARCH-WORKFLOW §3 and §4, per AGENT-WORKFLOW §3 observability.
-
-  1. Accept a trace_row dict with the 10 canonical fields (id is auto-assigned
-     post-insert; caller passes the rest).
-  2. Validate required fields are present.
-  3. Open a short-lived async SQLite session.
-  4. INSERT into agent_trace. Commit. Close.
-  5. Append one JSONL line to logs/agent_trace.jsonl (atomic append).
-  6. If payload passed, write logs/agent_payloads/{trace_id}.json.
-  7. Return the assigned trace id.
-
-Design rules from the workflow:
-  - NEVER fails in a way that breaks the agent (wrap exceptions, log, swallow).
-  - NEVER clusters, embeds, or calls LLMs here — pure ingestion.
-  - Keeps the function body short (~30 lines Phase 1).
+Design rules (from KARPATHY-AUTO-RESEARCH §3/§4):
+- NEVER fails in a way that breaks the agent — all errors logged + swallowed.
+- NEVER clusters, embeds, or calls LLMs — pure ingestion.
+- Function body stays short; Layer 2 clustering lives in `wiki/compiler.py`.
 """
 
 from __future__ import annotations
 
+import json
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from app.db.database import get_session
+from app.db.init_schema import AgentTrace
+
 logger = logging.getLogger(__name__)
 
-# Canonical trace row field contract per KARPATHY §3 (agent_trace table).
 TRACE_FIELDS: tuple[str, ...] = (
     "ts",
     "agent_name",
@@ -46,58 +37,107 @@ TRACE_FIELDS: tuple[str, ...] = (
     "notes",
 )
 
-# Filesystem sinks.
 JSONL_PATH = Path("logs/agent_trace.jsonl")
 PAYLOADS_DIR = Path("logs/agent_payloads")
 
 
-async def record_outcome(trace_row: dict[str, Any], payload: dict[str, Any] | None = None) -> int:
-    """Persist one agent invocation outcome to SQLite + JSONL.
-
-    Args:
-        trace_row: dict containing the 9 canonical agent_trace fields (TRACE_FIELDS).
-                   `id` is auto-assigned by SQLite.
-        payload: optional full request/response payload for deep post-mortems.
-                 Written to logs/agent_payloads/{trace_id}.json when provided.
-
-    Returns:
-        int — the newly assigned agent_trace.id.
-
-    Raises:
-        Never — all failures are caught + logged. This function MUST NOT break
-        the caller's finally block. On failure returns -1.
-    """
-    # PSEUDO: 1. Validate required fields — every field in TRACE_FIELDS must exist.
-    # PSEUDO:    Missing or None for any field → log warning, fill with sensible default.
-    # PSEUDO: 2. Serialize tool_calls_json if caller passed a list instead of string.
-    # PSEUDO: 3. Open async SQLite session via app/db (import at call time to avoid cycle).
-    # PSEUDO: 4. Execute INSERT INTO agent_trace(...) VALUES(...); capture lastrowid.
-    # PSEUDO: 5. Commit + close session.
-    # PSEUDO: 6. Append `{"id": trace_id, **trace_row}` as one line to JSONL_PATH.
-    # PSEUDO:    Create parent dir if missing. Open in append mode.
-    # PSEUDO: 7. If payload not None: PAYLOADS_DIR.mkdir(parents=True, exist_ok=True);
-    # PSEUDO:    write JSON to PAYLOADS_DIR / f"{trace_id}.json".
-    # PSEUDO: 8. Return trace_id.
-    # PSEUDO: 9. Wrap 3-8 in try/except — catch ALL, log exception, return -1.
-    raise NotImplementedError("Phase 3 stub — record_outcome not yet implemented")
-
-
-def _validate_trace_row(trace_row: dict[str, Any]) -> dict[str, Any]:
-    """Ensure every TRACE_FIELDS key is present; fill defaults."""
-    # PSEUDO: For each field in TRACE_FIELDS, if missing set a safe default
-    #         (empty string, 0, None per column type).
-    # PSEUDO: Coerce tool_calls_json to str via json.dumps if it's a list/dict.
-    # PSEUDO: Return the normalized row dict.
-    raise NotImplementedError
+def _normalize_trace_row(trace_row: dict[str, Any]) -> dict[str, Any]:
+    """Fill missing fields with safe defaults."""
+    normalized: dict[str, Any] = {}
+    for field in TRACE_FIELDS:
+        value = trace_row.get(field)
+        if field == "ts" and value is None:
+            value = datetime.utcnow()
+        elif field == "agent_name" and value is None:
+            value = "unknown"
+        elif field == "query_text" and value is None:
+            value = ""
+        elif field == "tool_calls_json" and value is None:
+            value = []
+        elif field == "outcome" and value is None:
+            value = "unknown"
+        elif field == "latency_ms" and value is None:
+            value = 0
+        elif field == "cost_cents" and value is None:
+            value = 0
+        normalized[field] = value
+    return normalized
 
 
 def _append_jsonl(path: Path, row: dict[str, Any]) -> None:
-    """Atomic-enough append of one JSON line to the trace log."""
-    # PSEUDO: path.parent.mkdir(parents=True, exist_ok=True)
-    # PSEUDO: with path.open("a", encoding="utf-8") as f: f.write(json.dumps(row) + "\n")
-    raise NotImplementedError
+    """Append one JSON line. Creates parent dir if missing."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    serializable = dict(row)
+    if isinstance(serializable.get("ts"), datetime):
+        serializable["ts"] = serializable["ts"].isoformat()
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(serializable, default=str) + "\n")
 
 
-# Phase 2 Graduation: record_outcome() grows an embedding step — MiniLM 384-dim vector
-# of query_text serialized to the new agent_trace.embedding BLOB column (Alembic migration).
-# Seam is this function's body; signature unchanged. Per KARPATHY §4 "App-Phase 2 note."
+async def record_outcome(
+    trace_row: dict[str, Any],
+    payload: dict[str, Any] | None = None,
+) -> int:
+    """Persist one agent invocation outcome to SQLite + JSONL.
+
+    Args:
+        trace_row: dict with the canonical agent_trace fields (TRACE_FIELDS).
+                   Missing fields get filled with safe defaults.
+        payload: optional full request/response payload for deep post-mortems.
+
+    Returns:
+        int — the newly assigned agent_trace.id, or -1 on any failure.
+
+    This function MUST NOT break the caller's finally block. All exceptions
+    are caught, logged, and swallowed with a -1 return.
+    """
+    try:
+        normalized = _normalize_trace_row(trace_row)
+
+        trace_id: int | None = None
+        async for session in get_session():
+            trace = AgentTrace(
+                ts=normalized["ts"],
+                agent_name=normalized["agent_name"],
+                query_text=normalized["query_text"],
+                tool_calls_json=normalized["tool_calls_json"],
+                outcome=normalized["outcome"],
+                confidence_score=normalized.get("confidence_score"),
+                latency_ms=normalized["latency_ms"],
+                cost_cents=normalized["cost_cents"],
+                notes=normalized.get("notes"),
+            )
+            session.add(trace)
+            await session.commit()
+            await session.refresh(trace)
+            trace_id = trace.id
+            break
+
+        if trace_id is None:
+            return -1
+
+        try:
+            _append_jsonl(JSONL_PATH, {"id": trace_id, **normalized})
+        except Exception:
+            logger.exception("record_outcome: JSONL append failed (non-fatal)")
+
+        if payload is not None:
+            try:
+                PAYLOADS_DIR.mkdir(parents=True, exist_ok=True)
+                (PAYLOADS_DIR / f"{trace_id}.json").write_text(
+                    json.dumps(payload, default=str, indent=2),
+                    encoding="utf-8",
+                )
+            except Exception:
+                logger.exception("record_outcome: payload write failed (non-fatal)")
+
+        return trace_id
+
+    except Exception:
+        logger.exception("record_outcome: trace insert failed — swallowing")
+        return -1
+
+
+# Phase 2 Graduation: record_outcome() grows an embedding step — MiniLM 384-dim
+# vector of query_text serialized to a new agent_trace.embedding BLOB column.
+# Seam is this function's body; signature stays identical.

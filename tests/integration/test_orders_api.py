@@ -142,7 +142,10 @@ async def test_order_detail_cross_facility_returns_403(auth_client, seeded_db):
 
 
 @pytest.mark.asyncio
-async def test_orders_new_returns_501_slice_d_deferral(auth_client):
+async def test_orders_new_renders_form_after_slice_d(auth_client):
+    """Slice D replaced the 501 deferral with a live form. Slice D's own
+    integration tests (test_orders_new_api.py) exercise POST + transcript
+    injection; here we just confirm the GET landing page is live."""
     r = await auth_client.get("/orders/new")
-    assert r.status_code == 501
-    assert "Slice D" in r.json()["detail"]
+    assert r.status_code == 200
+    assert "Place an order" in r.text

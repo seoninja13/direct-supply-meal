@@ -1,0 +1,78 @@
+{
+  "nl_ordering__oats_happy_path": {
+    "description": "User asks for 50 Overnight Oats on Tuesday. Agent resolves recipe, scales, checks inventory, proposes. No persistence.",
+    "events": [
+      {
+        "type": "tool_use",
+        "name": "resolve_recipe",
+        "input": {"name_query": "Overnight Oats"}
+      },
+      {
+        "type": "tool_use",
+        "name": "scale_recipe",
+        "input": {"recipe_id": 3, "n_servings": 50}
+      },
+      {
+        "type": "tool_use",
+        "name": "check_inventory",
+        "input": {"recipe_id": 3, "n_servings": 50, "needed_by": "__DELIVERY_DATE__"}
+      },
+      {
+        "type": "assistant_message",
+        "awaiting_confirmation": true,
+        "proposal": {
+          "recipe_id": 3,
+          "title": "Overnight Oats",
+          "n_servings": 50,
+          "unit_price_cents": 280,
+          "line_total_cents": 14000,
+          "delivery_date": "__DELIVERY_DATE__",
+          "delivery_window_slot": "morning_6_8",
+          "warnings": []
+        }
+      }
+    ]
+  },
+  "nl_ordering__oats_confirmed_persist": {
+    "description": "Resume after user confirmed the proposal. Agent calls schedule_order(confirmed=true) and returns pending.",
+    "events": [
+      {
+        "type": "tool_use",
+        "name": "schedule_order",
+        "input": {
+          "facility_id": 2,
+          "placed_by_user_id": 1,
+          "recipe_id": 3,
+          "n_servings": 50,
+          "unit_price_cents": 280,
+          "delivery_date": "__DELIVERY_DATE__",
+          "delivery_window_slot": "morning_6_8",
+          "notes": "NL order: 50 Overnight Oats for Tuesday breakfast",
+          "confirmed": true
+        }
+      },
+      {
+        "type": "assistant_message",
+        "pending": true,
+        "order_id": "__ORDER_ID__"
+      }
+    ]
+  },
+  "nl_ordering__ambiguous_recipe": {
+    "description": "User asks for something that resolves to multiple candidates above threshold. Agent emits disambiguation.",
+    "events": [
+      {
+        "type": "tool_use",
+        "name": "resolve_recipe",
+        "input": {"name_query": "soup"}
+      },
+      {
+        "type": "disambiguation",
+        "options": [
+          {"id": 7, "title": "Tomato Soup", "confidence": 0.85},
+          {"id": 8, "title": "Lentil Soup", "confidence": 0.85}
+        ]
+      }
+    ]
+  }
+}

@@ -1,13 +1,77 @@
-{# PSEUDOCODE: NL ordering page.
-   State A: empty textarea + Submit → POSTs to /orders/new.
-   State B: proposal card returned from agent (awaiting_confirmation) → Confirm button POSTs with confirm=true + trace_id.
-   State C: error card → link to /orders/new?mode=form (deterministic fallback when LLM unavailable). #}
 {% extends "base.html" %}
 {% block content %}
+<nav class="crumbs"><a href="/orders">&larr; All orders</a></nav>
+
 <h1>Place an order</h1>
-<form method="post" action="/orders/new">
-  <textarea name="text" placeholder="e.g. 50 Overnight Oats for Tuesday breakfast"></textarea>
-  <button type="submit">Submit</button>
-</form>
-<!-- Phase 3 stub; Phase 4 renders proposal card after agent turn 1 -->
+<p class="subtitle">
+  Describe what you want in plain English. Example:
+  <em>"50 Overnight Oats for Tuesday breakfast"</em>.
+</p>
+
+{% if error %}
+  <div class="alert alert-error">
+    <strong>Order could not be placed:</strong>
+    {{ error.message if error is mapping else error }}
+  </div>
+{% endif %}
+
+{% if options %}
+  <div class="alert alert-warning">
+    <p><strong>Which one did you mean?</strong></p>
+    <ul class="disambiguation-options">
+      {% for opt in options %}
+        <li>{{ opt.title }} (confidence {{ opt.confidence }})</li>
+      {% endfor %}
+    </ul>
+    <p class="muted">Re-phrase the order with a more specific name.</p>
+  </div>
+{% endif %}
+
+{% if proposal %}
+  <section class="proposal-card">
+    <h2>Confirm this order</h2>
+    <dl class="proposal-summary">
+      <dt>Recipe</dt>       <dd>{{ proposal.title or proposal.recipe_id }}</dd>
+      <dt>Servings</dt>     <dd>{{ proposal.n_servings }}</dd>
+      <dt>Delivery date</dt><dd>{{ proposal.delivery_date }}</dd>
+      {% if proposal.delivery_window_slot %}
+        <dt>Window</dt><dd>{{ proposal.delivery_window_slot|replace('_', ' ') }}</dd>
+      {% endif %}
+      {% if proposal.unit_price_cents %}
+        <dt>Unit price</dt>
+        <dd>${{ '%.2f' | format(proposal.unit_price_cents / 100) }}</dd>
+      {% endif %}
+      {% if proposal.line_total_cents %}
+        <dt>Total</dt>
+        <dd>${{ '%.2f' | format(proposal.line_total_cents / 100) }}</dd>
+      {% endif %}
+      {% if proposal.warnings %}
+        <dt>Warnings</dt>
+        <dd>
+          <ul>{% for w in proposal.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+        </dd>
+      {% endif %}
+    </dl>
+
+    <form method="post" action="/orders/new" class="confirm-form">
+      <input type="hidden" name="text" value="{{ text }}">
+      <input type="hidden" name="trace_id" value="{{ trace_id }}">
+      <input type="hidden" name="confirm" value="yes">
+      <button type="submit" class="confirm-btn">Confirm &amp; place order</button>
+      <a href="/orders/new" class="cancel-link">Cancel &amp; start over</a>
+    </form>
+  </section>
+{% else %}
+  <form method="post" action="/orders/new" class="nl-order-form">
+    <label for="text">What do you need?</label>
+    <textarea
+      id="text"
+      name="text"
+      rows="4"
+      placeholder="e.g. 50 Overnight Oats for Tuesday breakfast"
+      required
+    >{{ text }}</textarea>
+    <button type="submit">Preview order</button>
+  </form>
+{% endif %}
 {% endblock %}

@@ -1,118 +1,232 @@
 """
-PSEUDOCODE:
-1. Nine @tool wrappers registering MCP-compatible tools for both agents.
-2. Each tool opens its own async DB session, calls a pure helper in agents/tools.py or a service in app/services/, returns tool_success(...) or tool_error(code, message, hint?).
-3. Import tools from claude_agent_sdk (`tool` decorator) and from app.services (compliance, pricing, orders, scaling) and agents.tools (DB helpers).
-4. Inputs: `args` dict matching the JSON schema declared on each @tool.
-5. Outputs: MCP content shape — `{"content": [{"type":"text","text": "..."}]}` via tool_success / tool_error.
-6. Side effects: SQL reads and writes via the helpers.
+agents/tools_sdk.py — MCP-shaped @tool wrappers for NL Ordering (Slice D).
 
-IMPLEMENTATION: Phase 4.
+Each function here wraps a pure helper from agents/tools.py or a service from
+app/services/, and returns the MCP content shape the Claude Agent SDK expects:
+    {"content": [{"type": "text", "text": "<json>"}], "isError": False}
 
-Contract reference: docs/workflows/AGENT-WORKFLOW.md §5.
+Phase 1 keeps these as plain async functions — the NL Ordering driver invokes
+them directly via a tool registry so tests can mock `claude_agent_sdk.query()`
+without requiring the SDK to be installed. Phase 2 graduation applies the
+`@tool` decorator so the SDK's native tool-use protocol drives them.
+
+Menu-planner tools (check_compliance, estimate_cost, generate_meal_plan, etc.)
+ship with Slice E.
 """
 
+from __future__ import annotations
+
+import json
+from datetime import date
 from typing import Any
 
-# from claude_agent_sdk import tool
-# from agents.tools import (
-#     db_search_recipes, db_get_recipe, db_get_facility_residents,
-#     db_insert_order, db_append_order_status_event,
-# )
-# from app.services import compliance, pricing, orders, scaling
+from agents.tools import (
+    db_find_existing_order,
+    db_get_recipe,
+    db_insert_order,
+    db_resolve_recipe,
+)
 
 
-# PSEUDO: MCP return-shape helpers. Phase 4: replace with real claude_agent_sdk helpers.
-def tool_success(data: dict[str, Any]) -> dict[str, Any]:
-    # PSEUDO: wrap data dict into MCP content shape
-    raise NotImplementedError
+def _tool_success(data: dict[str, Any]) -> dict[str, Any]:
+    """Return the MCP success envelope."""
+    return {
+        "content": [{"type": "text", "text": json.dumps(data)}],
+        "isError": False,
+    }
 
 
-def tool_error(code: str, message: str, hint: dict[str, Any] | None = None) -> dict[str, Any]:
-    # PSEUDO: build MCP error response with `code` and optional `hint`
-    raise NotImplementedError
+def _tool_error(
+    code: str,
+    message: str,
+    hint: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Return the MCP error envelope with a machine-parsable code."""
+    body: dict[str, Any] = {"error": {"code": code, "message": message}}
+    if hint is not None:
+        body["error"]["hint"] = hint
+    return {
+        "content": [{"type": "text", "text": json.dumps(body)}],
+        "isError": True,
+    }
 
 
-# PSEUDO:
-# - Tags (list[str]) + exclude_allergens + optional max_cost_cents + texture_level.
-# - Query recipes table; filter by tag match, allergen exclusion, cost cap, texture ceiling.
-# - Success: {"recipes": [{id,title,texture_level,cost_cents_per_serving,allergens}], "count": N}.
-# - Errors: no_match, invalid_tag.
-async def search_recipes(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
-
-
-# PSEUDO:
-# - Accept recipe_id + resident_profile_id OR facility census dict.
-# - Delegate to app.services.compliance.check_compliance() or check_compliance_facility().
-# - Return worst verdict + per-rule breakdown. LLM never overrides deterministic fail.
-# - Errors: recipe_not_found, profile_not_found.
-async def check_compliance(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
-
-
-# PSEUDO:
-# - Accept recipe_id, n_servings, optional context dict.
-# - Call app.services.pricing.estimate_cost() which loads static baseline then tries Haiku refinement.
-# - On LLM error or >30% deviation, fall back to static. Mark `source` accordingly.
-# - Errors: llm_unavailable (caller falls back to static).
-async def estimate_cost(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
-
-
-# PSEUDO:
-# - Accept facility_id, week_start, days (list of DaySlots with meal_type+recipe_id+n_servings).
-# - Insert MealPlan row. Insert up to 21 MealPlanSlot rows.
-# - Errors: duplicate_plan (return existing meal_plan_id in hint), invalid_slot.
-async def save_menu(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
-
-
-# PSEUDO:
-# - Fuzzy title match via SQL LIKE or rapidfuzz (Phase 2: FTS5). top_k default 3.
-# - Success: {"candidates": [{id,title,score}], "best_confidence": float}.
-# - Error: no_match.
 async def resolve_recipe(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
+    """Fuzzy-resolve a recipe name against the catalog.
+
+    Args: {"name_query": str, "top_k": int = 3, "min_confidence": float = 0.5}
+    Success: {"candidates": [{id, title, confidence}], "count": N}
+    Errors: invalid_input (missing name_query), no_match (empty candidates).
+    """
+    name_query = args.get("name_query")
+    if not name_query or not isinstance(name_query, str):
+        return _tool_error("invalid_input", "name_query is required (non-empty string)")
+
+    top_k = int(args.get("top_k", 3))
+    min_confidence = float(args.get("min_confidence", 0.5))
+
+    candidates = await db_resolve_recipe(
+        name_query, top_k=top_k, min_confidence=min_confidence
+    )
+    if not candidates:
+        return _tool_error(
+            "no_match",
+            f"No recipe matched {name_query!r} above confidence {min_confidence}",
+            hint={"suggestion": "relax the confidence threshold or ask the user"},
+        )
+    return _tool_success({"candidates": candidates, "count": len(candidates)})
 
 
-# PSEUDO:
-# - Pure wrapper over app.services.scaling.scale_recipe(). No LLM.
-# - Success: {"recipe_id", "n_servings", "ingredients": [{name, grams, allergen_tags}]}.
-# - Error: recipe_not_found.
 async def scale_recipe(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
+    """Pure ingredient-gram scaling for a given recipe + target servings.
+
+    Args: {"recipe_id": int, "n_servings": int}
+    Success: {scale_factor, total_grams, ingredients: [...]}. See app.services.scaling.
+    """
+    try:
+        recipe_id = int(args["recipe_id"])
+        n_servings = int(args["n_servings"])
+    except (KeyError, TypeError, ValueError):
+        return _tool_error(
+            "invalid_input",
+            "recipe_id (int) and n_servings (int) are required",
+        )
+
+    recipe = await db_get_recipe(recipe_id)
+    if recipe is None:
+        return _tool_error(
+            "recipe_not_found",
+            f"No recipe with id={recipe_id}",
+        )
+
+    # Phase 1: the NL flow doesn't need the ingredient breakdown — it just
+    # needs (recipe title, cost per serving, target n_servings). Scaling
+    # ingredient grams is a pure helper the Menu Planner will call more
+    # aggressively in Slice E. For Slice D we return the projected totals.
+    total = recipe["cost_cents_per_serving"] * n_servings
+    return _tool_success(
+        {
+            "recipe_id": recipe_id,
+            "title": recipe["title"],
+            "n_servings": n_servings,
+            "unit_price_cents": recipe["cost_cents_per_serving"],
+            "line_total_cents": total,
+            "scale_factor": round(n_servings / max(1, recipe["base_yield"]), 3),
+        }
+    )
 
 
-# PSEUDO:
-# - Phase 1 stub: always return {"ok": true, "shortages": []}.
-# - Phase 2 seam: query real ERP / supplier inventory API.
-# - Error: invalid_date.
 async def check_inventory(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
+    """Check ingredient availability for a proposed order (Phase 1 stub: always OK).
+
+    Args: {"recipe_id": int, "n_servings": int, "needed_by": str (ISO date)}
+    Success: {"status": "ok", "notes": "stub"}.
+
+    Phase 2 Graduation: real supplier ERP call. Seam is this function body.
+    """
+    recipe_id = args.get("recipe_id")
+    if recipe_id is None:
+        return _tool_error("invalid_input", "recipe_id is required")
+    return _tool_success(
+        {
+            "status": "ok",
+            "recipe_id": recipe_id,
+            "notes": "Phase 1 stub — inventory always available.",
+        }
+    )
 
 
-# PSEUDO:
-# - Accept recipe_id, servings, service_date, confirmed.
-# - If not confirmed → return tool_error("not_confirmed").
-# - Idempotency: check (recipe_id, service_date, facility_id); if row exists return duplicate_order with existing order_id.
-# - INSERT Order + OrderLine + OrderStatusEvent(from=null, to=pending).
-# - Success: {"order_id", "status": "pending"}.
 async def schedule_order(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
+    """Persist the order when the user has confirmed the proposal.
+
+    Args: {
+        facility_id, placed_by_user_id, recipe_id, n_servings,
+        unit_price_cents, delivery_date (ISO),
+        delivery_window_slot?, notes?, confirmed: bool,
+    }
+
+    Success: {"order_id": N, "status": "pending", ...}.
+    Errors: not_confirmed (confirmed != true), invalid_input, duplicate_order.
+    """
+    if not args.get("confirmed"):
+        return _tool_error(
+            "not_confirmed",
+            "schedule_order refuses to persist without confirmed=true",
+        )
+
+    try:
+        facility_id = int(args["facility_id"])
+        placed_by_user_id = int(args["placed_by_user_id"])
+        recipe_id = int(args["recipe_id"])
+        n_servings = int(args["n_servings"])
+        unit_price_cents = int(args["unit_price_cents"])
+        delivery_date = date.fromisoformat(str(args["delivery_date"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        return _tool_error(
+            "invalid_input",
+            f"missing or malformed field: {exc}",
+        )
+
+    existing = await db_find_existing_order(
+        facility_id=facility_id,
+        recipe_id=recipe_id,
+        delivery_date=delivery_date,
+    )
+    if existing is not None:
+        # Idempotent: return the existing order rather than creating a duplicate.
+        return _tool_success(
+            {
+                "order_id": existing["id"],
+                "status": existing["status"],
+                "duplicate": True,
+            }
+        )
+
+    order = await db_insert_order(
+        facility_id=facility_id,
+        placed_by_user_id=placed_by_user_id,
+        recipe_id=recipe_id,
+        n_servings=n_servings,
+        unit_price_cents=unit_price_cents,
+        delivery_date=delivery_date,
+        delivery_window_slot=args.get("delivery_window_slot", "midday_11_1"),
+        notes=args.get("notes"),
+        pricing_source=args.get("pricing_source", "static"),
+    )
+    return _tool_success(
+        {
+            "order_id": order["id"],
+            "status": order["status"],
+            "total_cents": order["total_cents"],
+            "duplicate": False,
+        }
+    )
 
 
-# PSEUDO:
-# - Delegate to app.services.orders.advance_order_status() which validates the state-machine guard.
-# - Appends one OrderStatusEvent row + updates Order.status.
-# - Success: {"order_id", "from_status", "to_status", "event_id"}.
-# - Errors: invalid_transition, order_not_found.
-async def advance_order_status(args: dict[str, Any]) -> dict[str, Any]:
-    raise NotImplementedError
+# ---------------------------------------------------------------------------
+# Tool registry — the NL Ordering driver looks up tools by name.
+# Keys must match the strings the LLM uses in tool_use messages.
+# ---------------------------------------------------------------------------
+
+TOOL_REGISTRY: dict[str, Any] = {
+    "resolve_recipe": resolve_recipe,
+    "scale_recipe": scale_recipe,
+    "check_inventory": check_inventory,
+    "schedule_order": schedule_order,
+}
+
+
+__all__ = [
+    "TOOL_REGISTRY",
+    "check_inventory",
+    "resolve_recipe",
+    "scale_recipe",
+    "schedule_order",
+]
 
 
 # Phase 2 Graduation:
-#   - Tools migrate from in-process `invoke_tool()` to MCP transport. @tool signatures unchanged.
-#   - @tool decorators come from claude_agent_sdk; today's raise-NotImplementedError bodies
-#     are replaced with real DB calls in Phase 4.
-#   - See docs/workflows/AGENT-WORKFLOW.md §5 for the full contract.
+#   - Apply `@tool` decorator to each function so the SDK's native tool_use
+#     protocol drives invocation. Signatures stay identical.
+#   - Add the 5 menu-planner tools in Slice E.
+#   - Swap `check_inventory` stub for a real supplier ERP call.
