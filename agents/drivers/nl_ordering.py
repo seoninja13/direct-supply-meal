@@ -1,37 +1,41 @@
 """
-agents/drivers/nl_ordering.py — NL Ordering L1 Director (transcript-driven).
+agents/drivers/nl_ordering.py — NL Ordering L1 Director.
 
-Design (Phase 1):
-- The driver is an adapter between an HTTP request and a multi-turn LLM
-  transcript. Each transcript event is either:
-      {"type": "tool_use", "name": "...", "input": {...}}
-          → driver dispatches to TOOL_REGISTRY, appends the result.
-      {"type": "assistant_message", "awaiting_confirmation": True,
-       "proposal": {...}}
-          → driver halts and returns the proposal for the UI to show.
-      {"type": "assistant_message", "pending": True, "order_id": N}
-          → driver returns the persisted order_id.
-      {"type": "assistant_message", "error": {...}} or
-       {"type": "disambiguation", "options": [...]}
-          → driver returns an error or disambiguation response.
+Two paths:
 
-- `query_fn` is a dependency that yields these events. In production it's a
-  wrapper around `claude_agent_sdk.query()` that converts the SDK's tool_use
-  blocks into the shape above. In tests we inject a fake transcript.
+1. **Production** — `_default_query_fn` drives a real `claude_agent_sdk.query()`
+   session with the in-process MCP server from `agents.tools_sdk`. Tools run
+   inside the SDK's agentic loop. The driver maps SDK `AssistantMessage`
+   blocks into the unified transcript event shape below.
 
-- `trace_id` is a UUID minted at the start of the call. The unconfirmed path
-  returns it so the UI can send it back on POST-with-confirm.
+2. **Test** — tests inject a fake `query_fn` that yields canned events
+   directly. No SDK call. Tool invocations still execute against the real
+   seeded test DB so integration coverage is real.
 
-- observability.record_outcome is called in `finally` regardless of outcome.
+Transcript event shape (shared by both paths):
+    {"type": "tool_use", "name": "...", "input": {...}}
+    {"type": "tool_result", "name": "...", "result": {...}}
+    {"type": "assistant_message", "awaiting_confirmation": True,
+     "proposal": {...}}
+    {"type": "assistant_message", "pending": True, "order_id": N}
+    {"type": "assistant_message", "error": {...}}
+    {"type": "disambiguation", "options": [...]}
+
+`trace_id` is minted at the start of each run so the UI can POST it back
+on confirm.  observability.record_outcome fires in `finally`.
 """
 
 from __future__ import annotations
 
+import json as _json
 import logging
+import os
+import re
 import time
 import uuid
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from agents.observability import record_outcome
@@ -41,6 +45,8 @@ logger = logging.getLogger(__name__)
 
 # Type alias: a transcript is an async iterator of event dicts.
 TranscriptFn = Callable[[dict[str, Any]], AsyncIterator[dict[str, Any]]]
+
+_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "nl_ordering.md"
 
 
 @dataclass
@@ -63,22 +69,155 @@ class NLOrderingResponse:
     tool_calls: list[dict[str, Any]] = field(default_factory=list)
 
 
+def _load_system_prompt() -> str:
+    try:
+        return _PROMPT_PATH.read_text(encoding="utf-8")
+    except OSError:
+        logger.exception("Could not load NL ordering system prompt; using fallback")
+        return "You are the NL Ordering agent. Parse the user's request, propose an order, and wait for confirmation before persisting."
+
+
+def _extract_proposal(text: str) -> dict[str, Any] | None:
+    """Find the last ```json fenced block in `text` and parse it.
+
+    The NL prompt asks the model to emit a machine-parsable proposal block
+    on turn 1. We look for the last ```json ... ``` fence — last wins so the
+    model can iterate verbally and then commit at the end.
+    """
+    if not text:
+        return None
+    matches = re.findall(r"```json\s*(.+?)```", text, flags=re.DOTALL | re.IGNORECASE)
+    if not matches:
+        return None
+    try:
+        parsed = _json.loads(matches[-1].strip())
+        if isinstance(parsed, dict):
+            return parsed
+    except _json.JSONDecodeError:
+        return None
+    return None
+
+
 async def _default_query_fn(
     context: dict[str, Any],
 ) -> AsyncIterator[dict[str, Any]]:
-    """Production transcript source — wraps claude_agent_sdk.query().
+    """Real claude_agent_sdk.query() driver.
 
-    Phase 1: raises NotImplementedError so anyone who tries to run the real
-    LLM path without installing + mounting the SDK credentials fails loudly.
-    Slice D tests always inject a fake transcript, so this branch only runs
-    once the container is rebuilt and the SDK creds are mounted.
+    Registers the NL Ordering MCP server (from `agents.tools_sdk`) with the
+    SDK, issues one `query()` call with a prompt that includes the user text
+    and the request context (user_id, facility_id, confirm flag), and
+    streams the SDK's `AssistantMessage` / tool blocks out as unified
+    transcript events.
+
+    The SDK handles the agentic tool-use loop itself — this wrapper just
+    observes it and converts each interesting block into our event shape.
     """
-    raise NotImplementedError(
-        "Real Claude Agent SDK transcript is disabled until the container is "
-        "rebuilt with /root/.claude/.credentials.json mounted. Tests inject a "
-        "fake query_fn."
+    from claude_agent_sdk import (
+        AssistantMessage,
+        ClaudeAgentOptions,
+        TextBlock,
+        ToolResultBlock,
+        ToolUseBlock,
+        query,
     )
-    yield  # pragma: no cover — makes the signature an async generator.
+
+    from agents.tools_sdk import NL_ORDERING_TOOL_NAMES, build_nl_ordering_mcp_server
+
+    # Claude Max OAuth lives at /root/.claude/.credentials.json and is mounted
+    # into the container at /home/appuser/.claude/.credentials.json (see
+    # docker-compose.yml). The SDK reads those creds automatically when
+    # ANTHROPIC_API_KEY is not set. Per DuloCore memory: CLAUDECODE must be
+    # unset in-process before invoking the SDK.
+    if os.environ.get("CLAUDECODE"):
+        os.environ.pop("CLAUDECODE", None)
+
+    mcp_server = build_nl_ordering_mcp_server()
+    system_prompt = _load_system_prompt()
+
+    # Build the user-turn prompt. The driver encodes the request context
+    # into the prompt so the model knows the facility + user identity and
+    # whether it's a first-turn proposal or a post-confirmation persist.
+    user_text = context.get("text", "")
+    facility_id = context.get("facility_id")
+    user_id = context.get("user_id")
+    is_confirming = bool(context.get("confirm"))
+
+    if is_confirming:
+        prompt = (
+            f"The user has CONFIRMED the prior proposal.\n"
+            f"Call `mcp__ds_meal_nl_ordering__schedule_order` with confirmed=true "
+            f"using placed_by_user_id={user_id}, facility_id={facility_id}, "
+            f"and the values you proposed. Then respond with:\n"
+            f"```json\n{{\"status\": \"pending\"}}\n```"
+        )
+    else:
+        prompt = (
+            f"facility_id={facility_id}, user_id={user_id}.\n"
+            f"User request: {user_text}\n\n"
+            f"Use the tools to resolve the recipe, project cost, and check "
+            f"inventory, then propose the order. Do NOT call schedule_order "
+            f"on this turn. Finish with a ```json``` block containing the "
+            f"proposal: {{recipe_id, title, n_servings, unit_price_cents, "
+            f"line_total_cents, delivery_date (ISO), delivery_window_slot, "
+            f"warnings[] }}."
+        )
+
+    options = ClaudeAgentOptions(
+        system_prompt=system_prompt,
+        mcp_servers={"ds_meal_nl_ordering": mcp_server},
+        allowed_tools=list(NL_ORDERING_TOOL_NAMES),
+        permission_mode="bypassPermissions",
+        max_turns=8,
+        model="claude-haiku-4-5",
+    )
+
+    final_text_accum: list[str] = []
+
+    async for message in query(prompt=prompt, options=options):
+        if not isinstance(message, AssistantMessage):
+            continue
+        for block in message.content:
+            if isinstance(block, ToolUseBlock):
+                yield {
+                    "type": "tool_use",
+                    "name": block.name,
+                    "input": dict(block.input or {}),
+                }
+            elif isinstance(block, ToolResultBlock):
+                yield {
+                    "type": "tool_result",
+                    "tool_use_id": block.tool_use_id,
+                    "result": {
+                        "content": block.content,
+                        "isError": bool(block.is_error),
+                    },
+                }
+            elif isinstance(block, TextBlock):
+                final_text_accum.append(block.text)
+
+    # One terminal assistant_message synthesized from the concatenated text.
+    full_text = "\n".join(final_text_accum)
+    parsed = _extract_proposal(full_text)
+
+    if is_confirming:
+        yield {"type": "assistant_message", "pending": True, "order_id": None}
+        return
+
+    if parsed is not None:
+        yield {
+            "type": "assistant_message",
+            "awaiting_confirmation": True,
+            "proposal": parsed,
+        }
+    else:
+        yield {
+            "type": "assistant_message",
+            "error": {
+                "code": "no_proposal",
+                "message": "Agent finished without producing a structured proposal.",
+                "raw_text": full_text[:500],
+            },
+        }
 
 
 def _order_id_from_tools(tool_calls: list[dict[str, Any]]) -> int | None:

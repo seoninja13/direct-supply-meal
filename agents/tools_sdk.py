@@ -2,13 +2,12 @@
 agents/tools_sdk.py — MCP-shaped @tool wrappers for NL Ordering (Slice D).
 
 Each function here wraps a pure helper from agents/tools.py or a service from
-app/services/, and returns the MCP content shape the Claude Agent SDK expects:
+app/services/ and returns the MCP content shape the Claude Agent SDK expects:
     {"content": [{"type": "text", "text": "<json>"}], "isError": False}
 
-Phase 1 keeps these as plain async functions — the NL Ordering driver invokes
-them directly via a tool registry so tests can mock `claude_agent_sdk.query()`
-without requiring the SDK to be installed. Phase 2 graduation applies the
-`@tool` decorator so the SDK's native tool-use protocol drives them.
+Both plain (`TOOL_REGISTRY`) and SDK-decorated (`sdk_tool` versions via
+`build_nl_ordering_mcp_server`) shapes are exposed so the driver can dispatch
+via whichever is appropriate at the call site.
 
 Menu-planner tools (check_compliance, estimate_cost, generate_meal_plan, etc.)
 ship with Slice E.
@@ -19,6 +18,8 @@ from __future__ import annotations
 import json
 from datetime import date
 from typing import Any
+
+from claude_agent_sdk import create_sdk_mcp_server, tool
 
 from agents.tools import (
     db_find_existing_order,
@@ -216,8 +217,93 @@ TOOL_REGISTRY: dict[str, Any] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Claude Agent SDK MCP tool wrappers — the production path.
+#
+# The plain async functions above are what the driver's test path calls
+# directly. The SDK path below wraps those same functions with @tool so the
+# Claude Agent SDK's MCP machinery can call them during a real agent session.
+# ---------------------------------------------------------------------------
+
+
+@tool(
+    "resolve_recipe",
+    "Fuzzy-match a free-text recipe name to the catalog. Returns up to top_k candidates above min_confidence.",
+    {"name_query": str, "top_k": int, "min_confidence": float},
+)
+async def _sdk_resolve_recipe(args: dict[str, Any]) -> dict[str, Any]:
+    return await resolve_recipe(args)
+
+
+@tool(
+    "scale_recipe",
+    "Project cost + totals for a recipe at a target number of servings. Pure computation.",
+    {"recipe_id": int, "n_servings": int},
+)
+async def _sdk_scale_recipe(args: dict[str, Any]) -> dict[str, Any]:
+    return await scale_recipe(args)
+
+
+@tool(
+    "check_inventory",
+    "Verify that ingredients are in stock for a proposed order (Phase 1 stub: always ok).",
+    {"recipe_id": int, "n_servings": int, "needed_by": str},
+)
+async def _sdk_check_inventory(args: dict[str, Any]) -> dict[str, Any]:
+    return await check_inventory(args)
+
+
+@tool(
+    "schedule_order",
+    "Persist a single-line order. MUST be called with confirmed=true only AFTER the user approves the proposal.",
+    {
+        "facility_id": int,
+        "placed_by_user_id": int,
+        "recipe_id": int,
+        "n_servings": int,
+        "unit_price_cents": int,
+        "delivery_date": str,
+        "delivery_window_slot": str,
+        "notes": str,
+        "confirmed": bool,
+    },
+)
+async def _sdk_schedule_order(args: dict[str, Any]) -> dict[str, Any]:
+    return await schedule_order(args)
+
+
+def build_nl_ordering_mcp_server():
+    """Construct the in-process MCP server the SDK agent calls into.
+
+    Returns a McpSdkServerConfig that slots into `ClaudeAgentOptions.mcp_servers`.
+    """
+    return create_sdk_mcp_server(
+        name="ds_meal_nl_ordering",
+        version="0.1.0",
+        tools=[
+            _sdk_resolve_recipe,
+            _sdk_scale_recipe,
+            _sdk_check_inventory,
+            _sdk_schedule_order,
+        ],
+    )
+
+
+# All 4 tool names the SDK-side agent is allowed to call. Matches the
+# registrations in build_nl_ordering_mcp_server(). Exposed so the driver
+# can pass them to `ClaudeAgentOptions.allowed_tools` verbatim.
+NL_ORDERING_TOOL_NAMES: tuple[str, ...] = (
+    "mcp__ds_meal_nl_ordering__resolve_recipe",
+    "mcp__ds_meal_nl_ordering__scale_recipe",
+    "mcp__ds_meal_nl_ordering__check_inventory",
+    "mcp__ds_meal_nl_ordering__schedule_order",
+)
+
+
 __all__ = [
+    "NL_ORDERING_TOOL_NAMES",
     "TOOL_REGISTRY",
+    "build_nl_ordering_mcp_server",
     "check_inventory",
     "resolve_recipe",
     "scale_recipe",
@@ -226,7 +312,5 @@ __all__ = [
 
 
 # Phase 2 Graduation:
-#   - Apply `@tool` decorator to each function so the SDK's native tool_use
-#     protocol drives invocation. Signatures stay identical.
 #   - Add the 5 menu-planner tools in Slice E.
 #   - Swap `check_inventory` stub for a real supplier ERP call.
