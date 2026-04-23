@@ -96,8 +96,7 @@ def scale_recipe(
               map: all 8 macro fields are set to ``None`` (the explicit
               coverage-incomplete path, PRP D12).
             - Provided and covers every ingredient: macro fields are populated
-              with real values — NOTE: math fill-in pending PHASE-GATE-1, see
-              ``TODO(T-USDA-MACROS-007-MATH)`` below.
+              with real summed values (no rounding — floats preserve precision).
 
     Returns:
         ``ScaledRecipe`` TypedDict. Macro keys present iff ``macros_lookup`` is
@@ -150,23 +149,31 @@ def scale_recipe(
         result["per_serving_fat_g"] = None
         return result
 
-    # TODO(T-USDA-MACROS-007-MATH): sum per-ingredient macros post-PHASE-GATE-1
-    # using T-006 mapping values. For each ScaledIngredient:
-    #   row = macros_lookup[ing["ingredient_id"]]
-    #   factor = ing["grams"] / 100.0
-    #   total_kcal += row["kcal_per_100g"] * factor
-    #   ... (protein/carbs/fat analogously)
-    # Then per_serving_* = total_* / target_servings.
-    # Placeholder: until the gate unlocks, return None for all 8 fields even on
-    # full coverage so callers see a stable "not yet computed" shape.
-    result["total_kcal"] = None  # placeholder
-    result["total_protein_g"] = None  # placeholder
-    result["total_carbs_g"] = None  # placeholder
-    result["total_fat_g"] = None  # placeholder
-    result["per_serving_kcal"] = None  # placeholder
-    result["per_serving_protein_g"] = None  # placeholder
-    result["per_serving_carbs_g"] = None  # placeholder
-    result["per_serving_fat_g"] = None  # placeholder
+    # T-USDA-MACROS-007: per-ingredient macros summation (post-PHASE-GATE-1).
+    # For each scaled ingredient: contribution = grams_scaled * per_100g / 100.0.
+    # No rounding during accumulation — preserve USDA float precision; templates
+    # and tests round at display/assertion time.
+    accumulated_kcal = 0.0
+    accumulated_protein_g = 0.0
+    accumulated_carbs_g = 0.0
+    accumulated_fat_g = 0.0
+
+    for scaled_ing in scaled:
+        row = macros_lookup[scaled_ing["ingredient_id"]]
+        factor = scaled_ing["grams"] / 100.0
+        accumulated_kcal += row["kcal_per_100g"] * factor
+        accumulated_protein_g += row["protein_g_per_100g"] * factor
+        accumulated_carbs_g += row["carbs_g_per_100g"] * factor
+        accumulated_fat_g += row["fat_g_per_100g"] * factor
+
+    result["total_kcal"] = accumulated_kcal
+    result["total_protein_g"] = accumulated_protein_g
+    result["total_carbs_g"] = accumulated_carbs_g
+    result["total_fat_g"] = accumulated_fat_g
+    result["per_serving_kcal"] = accumulated_kcal / target_servings
+    result["per_serving_protein_g"] = accumulated_protein_g / target_servings
+    result["per_serving_carbs_g"] = accumulated_carbs_g / target_servings
+    result["per_serving_fat_g"] = accumulated_fat_g / target_servings
     return result
 
 
