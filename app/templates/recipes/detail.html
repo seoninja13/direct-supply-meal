@@ -20,6 +20,20 @@
   </ul>
 </section>
 
+<section class="usda-macros">
+  <h2>USDA Macros (per serving)</h2>
+  {% if scaled.per_serving_kcal is defined and scaled.per_serving_kcal is not none %}
+    <ul class="nutrition-list">
+      <li><span>Calories</span> <strong>{{ scaled.per_serving_kcal | round(0) | int }} kcal</strong></li>
+      <li><span>Protein</span> <strong>{{ scaled.per_serving_protein_g | round(1) }} g</strong></li>
+      <li><span>Carbohydrates</span> <strong>{{ scaled.per_serving_carbs_g | round(1) }} g</strong></li>
+      <li><span>Fat</span> <strong>{{ scaled.per_serving_fat_g | round(1) }} g</strong></li>
+    </ul>
+  {% else %}
+    <p class="macros-unavailable">USDA macros unavailable — ingredient mapping incomplete</p>
+  {% endif %}
+</section>
+
 <section class="allergens">
   <h2>Allergens</h2>
   {% for a in recipe.allergens %}

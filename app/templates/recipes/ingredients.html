@@ -40,6 +40,13 @@
       <td class="num"><strong>{{ scaled.total_grams }}</strong></td>
       <td></td>
     </tr>
+    {% if scaled.total_kcal is defined and scaled.total_kcal is not none %}
+    <tr>
+      <td><strong>USDA Total (per serving)</strong></td>
+      <td class="num"><strong>{{ scaled.per_serving_kcal | round(0) | int }} kcal / {{ scaled.per_serving_protein_g | round(1) }}g protein / {{ scaled.per_serving_carbs_g | round(1) }}g carbs / {{ scaled.per_serving_fat_g | round(1) }}g fat</strong></td>
+      <td></td>
+    </tr>
+    {% endif %}
   </tfoot>
 </table>
 
@@ -47,4 +54,13 @@
   Scaled from base yield of {{ recipe.base_yield }} servings to
   {{ scaled.target_servings }} (factor {{ '%.2f'|format(scaled.scale_factor) }}).
 </p>
+{% if scaled.total_kcal is defined and scaled.total_kcal is not none %}
+<p class="usda-estimate">
+  <strong>USDA estimate — per serving:</strong> {{ scaled.per_serving_kcal | round(0) | int }} kcal / {{ scaled.per_serving_protein_g | round(1) }}g protein / {{ scaled.per_serving_carbs_g | round(1) }}g carbs / {{ scaled.per_serving_fat_g | round(1) }}g fat
+</p>
+{% else %}
+<p class="usda-estimate macros-unavailable">
+  USDA macros unavailable — ingredient mapping incomplete
+</p>
+{% endif %}
 {% endblock %}

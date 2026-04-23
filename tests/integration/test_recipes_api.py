@@ -103,3 +103,42 @@ async def test_json_twin_shape_parity(client):
     assert len(json_titles) == 10
     for t in json_titles:
         assert _escaped(t) in html_resp.text, f"Title {t!r} (escaped) not in HTML"
+
+
+@pytest.mark.asyncio
+async def test_api_v1_recipes_detail_includes_usda_macros(client):
+    """Recipe 2 (Veggie Omelette) — when T-009 wires macros_lookup, keys appear and are numeric.
+
+    Currently T-009 (route wiring) is not yet landed: scale_recipe is called without
+    macros_lookup, so the 8 macro keys are omitted from ScaledRecipe (they are
+    NotRequired). Once T-009 wires the route, the keys will be present and (for
+    fully-mapped Recipe 2) numeric. This test exercises both states:
+
+    - keys absent → skip (T-009 pending)
+    - keys present, per_serving_kcal is None → coverage-incomplete path
+    - keys present, per_serving_kcal is a number → validate numeric bounds
+    """
+    resp = await client.get("/api/v1/recipes/2")
+    assert resp.status_code == 200
+    payload = resp.json()
+    scaled = payload["scaled"]
+
+    macro_keys = (
+        "total_kcal", "total_protein_g", "total_carbs_g", "total_fat_g",
+        "per_serving_kcal", "per_serving_protein_g", "per_serving_carbs_g", "per_serving_fat_g",
+    )
+    if not any(k in scaled for k in macro_keys):
+        pytest.skip("T-009 not yet wired: route does not pass macros_lookup to scale_recipe")
+
+    # Once present, all 8 must be present together (stable shape contract per PRP D12).
+    for key in macro_keys:
+        assert key in scaled, f"Expected macro key {key!r} in scaled dict"
+
+    if scaled["per_serving_kcal"] is not None:
+        assert isinstance(scaled["per_serving_kcal"], (int, float))
+        assert scaled["per_serving_kcal"] > 0
+        assert scaled["per_serving_protein_g"] >= 0
+        assert scaled["per_serving_carbs_g"] >= 0
+        assert scaled["per_serving_fat_g"] >= 0
+        # Sanity: Veggie Omelette should be ~300-1000 kcal per serving (hand-calc ≈ 632).
+        assert 300 <= scaled["per_serving_kcal"] <= 1000

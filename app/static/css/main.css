@@ -516,4 +516,25 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .alert-warning { background: #fef3c7; border-left: 4px solid var(--status-pending); color: #78350f; }
 .disambiguation-options { margin: 0.5rem 0; padding-left: 1.25rem; }
 
+/* -------- USDA macros (T-010/T-011) -------- */
+.usda-macros {
+  margin: 1rem 0;
+}
+.usda-estimate {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+.macros-unavailable {
+  color: #c0392b;
+  background: #fadbd8;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-style: italic;
+}
+tr.total-macros {
+  font-weight: 600;
+  background: #f8f9fa;
+}
+
 /* Phase 2 Graduation: CSS framework swap (Tailwind / design tokens) or component library. */
