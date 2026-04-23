@@ -3,7 +3,7 @@
 
 PYTHON ?= python3
 
-.PHONY: install test lint run-dev seed-db seed-traces compile-wiki docker-up docker-down
+.PHONY: install test lint run-dev seed-db seed-traces seed-usda compile-wiki docker-up docker-down
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -23,6 +23,9 @@ seed-db:
 
 seed-traces:
 	$(PYTHON) scripts/seed_traces.py
+
+seed-usda:
+	$(PYTHON) scripts/seed_usda.py
 
 compile-wiki:
 	$(PYTHON) -m wiki.compiler
