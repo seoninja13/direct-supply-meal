@@ -143,11 +143,27 @@ async def _default_query_fn(
     is_confirming = bool(context.get("confirm"))
 
     if is_confirming:
+        # Each query() call is a fresh SDK session with no memory of the prior
+        # turn, so we cannot say "use the values you proposed." We include the
+        # original request and ask the model to re-resolve then schedule in a
+        # single turn.
         prompt = (
-            f"The user has CONFIRMED the prior proposal.\n"
-            f"Call `mcp__ds_meal_nl_ordering__schedule_order` with confirmed=true "
-            f"using placed_by_user_id={user_id}, facility_id={facility_id}, "
-            f"and the values you proposed. Then respond with:\n"
+            f"The facility staffer said: \"{user_text}\"\n"
+            f"facility_id={facility_id}, placed_by_user_id={user_id}.\n\n"
+            f"They have just CONFIRMED this order in the UI. Your job this turn "
+            f"is to persist it.\n\n"
+            f"Steps:\n"
+            f"1. Call `mcp__ds_meal_nl_ordering__resolve_recipe` to pick the "
+            f"recipe from the user's text.\n"
+            f"2. If needed, call `mcp__ds_meal_nl_ordering__scale_recipe` and "
+            f"`mcp__ds_meal_nl_ordering__check_inventory` to determine servings.\n"
+            f"3. Call `mcp__ds_meal_nl_ordering__schedule_order` with "
+            f"confirmed=true, placed_by_user_id={user_id}, "
+            f"facility_id={facility_id}, recipe_id, n_servings, "
+            f"unit_price_cents, delivery_date (ISO yyyy-mm-dd), and "
+            f"delivery_window_slot (e.g. morning_6_8 for breakfast, "
+            f"midday_11_1 for lunch, evening_4_6 for dinner).\n"
+            f"4. End your response with:\n"
             f"```json\n{{\"status\": \"pending\"}}\n```"
         )
     else:
