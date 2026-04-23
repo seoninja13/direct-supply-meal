@@ -17,6 +17,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+import httpx
 import jwt
 from jwt import InvalidTokenError, PyJWKClient, PyJWKClientError
 
@@ -110,6 +111,11 @@ def verify_clerk_jwt(token: str, *, audience: str | None = None) -> ClerkClaims:
 
     email = _extract_email(claims)
     if not email:
+        # Clerk's default session JWT omits email. Fall back to the Backend API
+        # using the verified `sub` + CLERK_SECRET_KEY. The JWT is already trusted
+        # at this point (signature + exp verified above).
+        email = _fetch_clerk_user_email(claims["sub"])
+    if not email:
         raise AuthError("missing_email_claim")
 
     return ClerkClaims(
@@ -139,6 +145,44 @@ def _extract_email(claims: dict[str, Any]) -> str | None:
         if isinstance(node, str) and "@" in node:
             return node
 
+    return None
+
+
+def _fetch_clerk_user_email(user_id: str) -> str | None:
+    """Resolve a Clerk user's primary email via the Backend API.
+
+    Used as a fallback when the session JWT lacks an email claim (Clerk's
+    default session template omits it). The caller has already verified the
+    JWT signature and expiry, so the sub is trusted.
+    """
+    secret = get_settings().CLERK_SECRET_KEY
+    if not secret or not user_id:
+        return None
+    try:
+        resp = httpx.get(
+            f"https://api.clerk.com/v1/users/{user_id}",
+            headers={"Authorization": f"Bearer {secret}"},
+            timeout=5.0,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except (httpx.HTTPError, ValueError):
+        return None
+
+    primary_id = data.get("primary_email_address_id")
+    for row in data.get("email_addresses", []) or []:
+        if not isinstance(row, dict):
+            continue
+        addr = row.get("email_address")
+        if not isinstance(addr, str) or "@" not in addr:
+            continue
+        if primary_id and row.get("id") == primary_id:
+            return addr
+    for row in data.get("email_addresses", []) or []:
+        if isinstance(row, dict):
+            addr = row.get("email_address")
+            if isinstance(addr, str) and "@" in addr:
+                return addr
     return None
 
 
