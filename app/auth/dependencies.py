@@ -17,7 +17,8 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.auth.clerk_middleware import AuthError, verify_clerk_jwt
+from app.auth.app_session import verify_app_session
+from app.auth.clerk_middleware import AuthError
 from app.db.database import get_session
 from app.models.user import User
 
@@ -53,11 +54,11 @@ async def require_login(
     request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> CurrentUser:
-    """FastAPI dependency: verify Clerk JWT → load User → return CurrentUser."""
+    """FastAPI dependency: verify app-session token → load User → return CurrentUser."""
     token = _extract_token(request)
 
     try:
-        claims = verify_clerk_jwt(token)
+        claims = verify_app_session(token)
     except AuthError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

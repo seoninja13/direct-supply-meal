@@ -34,6 +34,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.app_session import mint_app_session
 from app.auth.clerk_middleware import AuthError, verify_clerk_jwt
 from app.auth.dependencies import SESSION_COOKIE_NAME
 from app.auth.provisioning import NotOnAllowlist, provision_user
@@ -82,7 +83,7 @@ def _clerk_js_url(frontend_host: str) -> str:
 router = APIRouter()
 api_router = APIRouter(prefix="/api/v1")
 
-SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 8  # 8 hours
+SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60  # 1 hour — matches app-session JWT TTL
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -169,6 +170,11 @@ async def sign_in_exchange(
             detail=f"not_on_allowlist:{exc}",
         ) from exc
 
+    # Mint our own app-side session token so the cookie survives longer than
+    # Clerk's ~60s default JWT expiry. The Clerk JWT was verified above; after
+    # this point we trust our own signed token for 1 hour.
+    app_token = mint_app_session(claims.sub, claims.email)
+
     response = JSONResponse(
         {
             "status": "signed_in",
@@ -181,7 +187,7 @@ async def sign_in_exchange(
     # Prod toggles to True via a SECURE_COOKIES setting in Phase 2.
     response.set_cookie(
         SESSION_COOKIE_NAME,
-        value=token,
+        value=app_token,
         max_age=SESSION_COOKIE_MAX_AGE_SECONDS,
         httponly=True,
         secure=False,
