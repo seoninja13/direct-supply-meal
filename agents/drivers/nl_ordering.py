@@ -194,9 +194,13 @@ async def _default_query_fn(
     final_text_accum: list[str] = []
 
     async for message in query(prompt=prompt, options=options):
-        if not isinstance(message, AssistantMessage):
+        # ToolUseBlock + TextBlock live on AssistantMessage; ToolResultBlock
+        # lives on UserMessage (the loop-back that feeds tool output to the
+        # model). We need both to record tool calls AND their results.
+        content = getattr(message, "content", None)
+        if not isinstance(content, list):
             continue
-        for block in message.content:
+        for block in content:
             if isinstance(block, ToolUseBlock):
                 yield {
                     "type": "tool_use",
@@ -213,7 +217,7 @@ async def _default_query_fn(
                         "isError": bool(block.is_error),
                     },
                 }
-            elif isinstance(block, TextBlock):
+            elif isinstance(block, TextBlock) and isinstance(message, AssistantMessage):
                 final_text_accum.append(block.text)
 
     # One terminal assistant_message synthesized from the concatenated text.
