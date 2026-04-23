@@ -298,3 +298,98 @@ tasks:
 ---
 
 **Status: APPROVED**
+
+---
+
+## Appendix A — Staging for T-017 Ship Task
+
+> **Purpose.** Pre-authored copy for the `docs/CATALOG.md` row and the `docs/DEMO-SCRIPT.md` blurb that T-USDA-MACROS-017 will paste in verbatim. Drafted during the prep pass so T-017 becomes a mechanical copy-paste with no authorship judgement required. **Delete this appendix as the final housekeeping step of T-017** (see checklist below).
+>
+> **Do NOT apply any of this content to CATALOG.md or DEMO-SCRIPT.md yet.** That is T-017's job, and it must happen only after T-016 (pre-merge verification) and T-014 (all 10 recipes render) both pass.
+
+### A.1 CATALOG.md row to add
+
+**Target file:** `docs/CATALOG.md`
+**Target table:** Table 1 — Features
+**Insertion position:** append as a new row at the BOTTOM of Table 1 (after the `Karpathy Learning` row on line 30). Table 1 is not alphabetical today (it follows add-order roughly matching Phase 1 build sequence), so the new row goes last. **Do not reorder existing rows.** No placeholder row exists to replace.
+**Tables 2 and 3 (Protocols, Infrastructure):** no changes. USDA macros is a feature, not a new protocol or new infra component.
+
+Column headers (from line 19, verified): `Feature | Phase | Stage | Verification | Key files | Status`
+
+Row to paste (single line, pipe-separated):
+
+```markdown
+| USDA Macros | App Phase 1 | Plan | Unit + Integration + E2E | `app/services/scaling.py`, `app/models/usda_food.py`, `app/routes/recipes.py`, `app/templates/recipes/detail.html`, `app/templates/recipes/ingredients.html`, `fixtures/macro.csv`, `fixtures/ingredient_fdc_mapping.json`, `scripts/seed_usda.py` | SHIPPED |
+```
+
+Column-by-column justification:
+
+| Column | Value | Why |
+|---|---|---|
+| Feature | `USDA Macros` | Matches feature slug `usda-macros`; short human-readable label consistent with existing rows (`Recipe Browse`, `Meal Planning`, etc.). |
+| Phase | `App Phase 1` | PRP §"Phase" declares "App Phase 1 additive"; matches every other row in Table 1. |
+| Stage | `Plan` | Same value every existing row uses for Phase-1 features — this column tracks roadmap stage, not current build state. Keep for consistency. |
+| Verification | `Unit + Integration + E2E` | Derived from DoD matrix §8: T-008 (Unit), T-012 (Integration), T-015 (E2E). No "Real Auth" because feature is public (stage 5 skipped by design). |
+| Key files | see row above | Includes: new model, new table, scaling service (extended), route handler (extended), both template files, vendored CSV, mapping JSON, seed script. Matches the density of the `Auth` row's key-files column. |
+| Status | `SHIPPED` | Phase 1 feature-reality value per legend (line 11). See §A.4 below — only paste after T-014 + T-016 pass. |
+
+### A.2 DEMO-SCRIPT.md blurb to add
+
+**Target file:** `docs/DEMO-SCRIPT.md`
+**Target section:** `## Live Walkthrough`
+**Insertion position:** **insert a new step between existing Step 3 (Recipe Detail) and existing Step 4 (Ingredient Scaling).** New step becomes **Step 4 — USDA Macros**; existing Step 4 (Ingredient Scaling) renumbers to Step 5, and every subsequent step increments by one (Step 5→6, 6→7, 7→8, 8→9, 9→10, 10→11).
+**Voice:** existing script uses second-person imperative ("Click X", "Navigate to Y") with an occasional `> **Architectural callout:**` blockquote. Blurb matches that voice.
+
+Blurb to paste (this replaces the current Step 4 heading and inserts a new step above it — see the full find/replace pattern under A.2a):
+
+```markdown
+### Step 4 — USDA Macros
+On the recipe detail page, scroll to the **"USDA macros (per serving)"** block below the existing nutrition section. You'll see **calories, protein, carbs, fat** — each computed from USDA FoodData Central per-100g values, scaled to the recipe's base yield, and divided by `target_servings`. Note the **"USDA estimate"** label: these are additive to (not overwriting) the hardcoded `carbs_g` / `sodium_mg` / `potassium_mg` / `phosphorus_mg` that the compliance engine consumes.
+
+> **Architectural callout:** The math is a **pure function** in `app/services/scaling.py::scale_recipe()` — no LLM, no network call. Each ingredient's scaled grams × USDA per-100g / 100, summed across ingredients. Try `?servings=50` on the ingredients page (next step) and the per-recipe totals scale linearly while per-serving stays the same.
+```
+
+Then the existing Step 4 (Ingredient Scaling) renumbers to Step 5, and so on through Step 11 (was Step 10 Observability Trace).
+
+**A.2a — exact find/replace pattern for T-017 worker:**
+
+Find (existing line):
+
+```markdown
+### Step 4 — Ingredient Scaling
+```
+
+Replace with:
+
+```markdown
+### Step 4 — USDA Macros
+On the recipe detail page, scroll to the **"USDA macros (per serving)"** block below the existing nutrition section. You'll see **calories, protein, carbs, fat** — each computed from USDA FoodData Central per-100g values, scaled to the recipe's base yield, and divided by `target_servings`. Note the **"USDA estimate"** label: these are additive to (not overwriting) the hardcoded `carbs_g` / `sodium_mg` / `potassium_mg` / `phosphorus_mg` that the compliance engine consumes.
+
+> **Architectural callout:** The math is a **pure function** in `app/services/scaling.py::scale_recipe()` — no LLM, no network call. Each ingredient's scaled grams × USDA per-100g / 100, summed across ingredients. Try `?servings=50` on the ingredients page (next step) and the per-recipe totals scale linearly while per-serving stays the same.
+
+### Step 5 — Ingredient Scaling
+```
+
+Then continue renumbering: `Step 5 — Sign In` → `Step 6`, `Step 6 — Facility Dashboard` → `Step 7`, `Step 7 — Order Detail` → `Step 8`, `Step 8 — Calendar View` → `Step 9`, `Step 9 — Natural-Language Order` → `Step 10`, `Step 10 — Observability Trace` → `Step 11`.
+
+### A.3 Checklist for T-017 worker
+
+- [ ] Copy the CATALOG row from §A.1 (the single pipe-separated line)
+- [ ] Paste into `docs/CATALOG.md` at the bottom of Table 1 (after the `Karpathy Learning` row); do NOT reorder existing rows
+- [ ] Copy the DEMO-SCRIPT blurb from §A.2 and apply the find/replace pattern from §A.2a; renumber subsequent steps 5→6, 6→7, 7→8, 8→9, 9→10, 10→11
+- [ ] Delete Appendix A from `docs/PRP-USDA-MACROS-001.md` (housekeeping — staging is transient, everything from the `---` separator above `## Appendix A` to end of file)
+- [ ] Commit all three file changes in ONE commit (`CATALOG.md` + `DEMO-SCRIPT.md` + PRP appendix removal) + push + merge
+
+### A.4 Status drift note (CRITICAL)
+
+Status cell value = `SHIPPED` (NOT `PLAN`, NOT `CODED`, NOT `TESTED`, NOT `DEPLOYED`).
+
+`SHIPPED` is the Phase-1 feature-reality legend value (see CATALOG.md line 11) and is the status every other live Phase-1 feature row uses (`Recipe Browse`, `Facility Dashboard`, `NL Order`, etc.).
+
+**Pre-conditions before inserting this row with status = SHIPPED:**
+
+1. **T-USDA-MACROS-016** (pre-merge verification harness) has run and reported PASS on unit + integration + E2E.
+2. **T-USDA-MACROS-014** has confirmed all 10 recipes render numeric macros (no "macros unavailable" badges on recipes that should have full coverage).
+3. Feature is live on `https://ds-meal.dulocore.com/recipes/2` (Veggie Omelette) and at least one other recipe — browser-verified, not just "server returns 200".
+
+If any of the above is still PENDING at T-017 time, status cell value must be `PARTIAL` instead of `SHIPPED`, and the CATALOG row's `Verification` column should be annotated with which stage is still pending (e.g. `Unit + Integration + E2E (E2E pending)`). Do not ship a `SHIPPED` row ahead of the verification evidence.
