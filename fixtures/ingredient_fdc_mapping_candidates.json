@@ -1,0 +1,1282 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-04-23T16:44:36.431372+00:00",
+  "scorer": "rapidfuzz.token_set_ratio",
+  "notes": "One-shot output from scripts/draft_usda_mapping.py. Human finalizes selections per T-USDA-MACROS-006 (PoC: Veggie Omelette) and T-USDA-MACROS-013 (remaining 44).",
+  "ingredients": [
+    {
+      "ingredient_name": "almond milk",
+      "normalized": "almond milk",
+      "candidates": [
+        {
+          "fdc_id": 169622,
+          "description": "Candies, HERSHEY'S MILK CHOCOLATE WITH ALMOND BITES",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 167947,
+          "description": "Candies, TOBLERONE, milk chocolate with honey and almond nougat",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345738,
+          "description": "Almond oil",
+          "score": 85.71,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "beef broth",
+      "normalized": "beef broth",
+      "candidates": [
+        {
+          "fdc_id": 171560,
+          "description": "Soup, beef broth or bouillon, powder, dry",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 171538,
+          "description": "Soup, beef broth or bouillon canned, ready-to-serve",
+          "score": 100.0,
+          "flags": [
+            "canned"
+          ]
+        },
+        {
+          "fdc_id": 171548,
+          "description": "Soup, beef broth bouillon and consomme, canned, condensed",
+          "score": 100.0,
+          "flags": [
+            "canned"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "beef gravy",
+      "normalized": "beef gravy",
+      "candidates": [
+        {
+          "fdc_id": 2341798,
+          "description": "Beef with gravy",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341919,
+          "description": "Beef and rice with gravy",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341910,
+          "description": "Beef and noodles with gravy",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "blueberries",
+      "normalized": "blueberries",
+      "candidates": [
+        {
+          "fdc_id": 171711,
+          "description": "Blueberries, raw",
+          "score": 81.48,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 2263889,
+          "description": "Blueberries, raw",
+          "score": 81.48,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 2344769,
+          "description": "Blueberries, raw",
+          "score": 81.48,
+          "flags": [
+            "raw"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "breadcrumbs",
+      "normalized": "breadcrumbs",
+      "candidates": [
+        {
+          "fdc_id": 2343079,
+          "description": "Bread, Cuban",
+          "score": 69.57,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343330,
+          "description": "Bread, fruit",
+          "score": 60.87,
+          "flags": []
+        },
+        {
+          "fdc_id": 167944,
+          "description": "Bread, cheese",
+          "score": 58.33,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "broccoli florets",
+      "normalized": "broccoli florets",
+      "candidates": [
+        {
+          "fdc_id": 2345164,
+          "description": "Fried broccoli",
+          "score": 80.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 170379,
+          "description": "Broccoli, raw",
+          "score": 68.97,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 321900,
+          "description": "Broccoli, raw",
+          "score": 68.97,
+          "flags": [
+            "raw"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "butter",
+      "normalized": "butter",
+      "candidates": [
+        {
+          "fdc_id": 2345736,
+          "description": "Honey butter",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345862,
+          "description": "Fruit butter",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343010,
+          "description": "Almond butter",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "carrot",
+      "normalized": "carrot",
+      "candidates": [
+        {
+          "fdc_id": 2343325,
+          "description": "Muffin, carrot",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345196,
+          "description": "Carrot juice, 100%",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343339,
+          "description": "Cake or cupcake, carrot",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "carrots",
+      "normalized": "carrots",
+      "candidates": [
+        {
+          "fdc_id": 173518,
+          "description": "Babyfood, carrots and beef, strained",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2344510,
+          "description": "Rice, white, with carrots and dark green vegetables, fat added",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2344551,
+          "description": "Rice, brown, with carrots and dark green vegetables, fat added",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "celery",
+      "normalized": "celery",
+      "candidates": [
+        {
+          "fdc_id": 2345331,
+          "description": "Celery juice",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 170920,
+          "description": "Spices, celery seed",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 170462,
+          "description": "Tomato products, canned, sauce, with onions, green peppers, and celery",
+          "score": 100.0,
+          "flags": [
+            "canned"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "chia seeds",
+      "normalized": "chia seeds",
+      "candidates": [
+        {
+          "fdc_id": 2343065,
+          "description": "Chia seeds",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 170554,
+          "description": "Seeds, chia seeds, dried",
+          "score": 74.07,
+          "flags": [
+            "dried"
+          ]
+        },
+        {
+          "fdc_id": 2343063,
+          "description": "Flax seeds",
+          "score": 70.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "chicken breast",
+      "normalized": "chicken breast",
+      "candidates": [
+        {
+          "fdc_id": 171515,
+          "description": "Chicken breast tenders, breaded, uncooked",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 172945,
+          "description": "Oscar Mayer, Chicken Breast (honey glazed)",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 171514,
+          "description": "Chicken breast tenders, breaded, cooked, microwaved",
+          "score": 100.0,
+          "flags": [
+            "cooked"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "chicken broth",
+      "normalized": "chicken broth",
+      "candidates": [
+        {
+          "fdc_id": 171563,
+          "description": "Soup, chicken broth cubes, dry",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 171562,
+          "description": "Soup, chicken broth or bouillon, dry",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 174566,
+          "description": "Soup, chicken broth cubes, dry, prepared with water",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "cod fillet",
+      "normalized": "cod fillet",
+      "candidates": [
+        {
+          "fdc_id": 2342955,
+          "description": "Vegetarian, fillet",
+          "score": 75.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2342445,
+          "description": "Chicken fillet sandwich, NFS",
+          "score": 75.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2342447,
+          "description": "Chicken fillet biscuit, from fast food",
+          "score": 75.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "cumin",
+      "normalized": "cumin",
+      "candidates": [
+        {
+          "fdc_id": 170923,
+          "description": "Spices, cumin seed",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2346218,
+          "description": "Mint julep",
+          "score": 53.33,
+          "flags": []
+        },
+        {
+          "fdc_id": 2346277,
+          "description": "Gin",
+          "score": 50.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "diced onion",
+      "normalized": "onion",
+      "candidates": [
+        {
+          "fdc_id": 2343110,
+          "description": "Bread, onion",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341025,
+          "description": "Onion dip, light",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341024,
+          "description": "Onion dip, regular",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "diced tomato",
+      "normalized": "tomato",
+      "candidates": [
+        {
+          "fdc_id": 2345270,
+          "description": "Tomato aspic",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345272,
+          "description": "Tomato soup, NFS",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345241,
+          "description": "Tomato juice, 100%",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "egg",
+      "normalized": "egg",
+      "candidates": [
+        {
+          "fdc_id": 172673,
+          "description": "Bread, egg",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 174901,
+          "description": "Bagels, egg",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2342818,
+          "description": "Egg burrito",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "flour",
+      "normalized": "flour",
+      "candidates": [
+        {
+          "fdc_id": 173755,
+          "description": "Carob flour",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 168446,
+          "description": "Potato flour",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 172023,
+          "description": "Millet flour",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "garlic",
+      "normalized": "garlic",
+      "candidates": [
+        {
+          "fdc_id": 2343142,
+          "description": "Roll, garlic",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345726,
+          "description": "Garlic sauce",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343103,
+          "description": "Garlic bread, NFS",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "ginger",
+      "normalized": "ginger",
+      "candidates": [
+        {
+          "fdc_id": 169231,
+          "description": "Ginger root, raw",
+          "score": 100.0,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 2346077,
+          "description": "Tea, ginger",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345609,
+          "description": "Ginger root, pickled",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "granola",
+      "normalized": "granola",
+      "candidates": [
+        {
+          "fdc_id": 2343415,
+          "description": "Cookie, granola",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343945,
+          "description": "Cereal, granola",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343584,
+          "description": "Cereal or Granola bar, NFS",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "greek yogurt",
+      "normalized": "greek yogurt",
+      "candidates": [
+        {
+          "fdc_id": 167722,
+          "description": "Tofu yogurt",
+          "score": 70.59,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345771,
+          "description": "Yogurt dressing",
+          "score": 66.67,
+          "flags": []
+        },
+        {
+          "fdc_id": 173779,
+          "description": "SILK Peach soy yogurt",
+          "score": 66.67,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "ground lamb",
+      "normalized": "ground lamb",
+      "candidates": [
+        {
+          "fdc_id": 2341313,
+          "description": "Lamb, ground",
+          "score": 95.65,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341286,
+          "description": "Ham, ground",
+          "score": 81.82,
+          "flags": []
+        },
+        {
+          "fdc_id": 174370,
+          "description": "Lamb, ground, raw",
+          "score": 78.57,
+          "flags": [
+            "raw"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "ground turkey",
+      "normalized": "ground turkey",
+      "candidates": [
+        {
+          "fdc_id": 2341542,
+          "description": "Turkey, ground",
+          "score": 96.3,
+          "flags": []
+        },
+        {
+          "fdc_id": 171505,
+          "description": "Turkey, Ground, raw",
+          "score": 81.25,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 171506,
+          "description": "Turkey, Ground, cooked",
+          "score": 74.29,
+          "flags": [
+            "cooked"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "honey",
+      "normalized": "honey",
+      "candidates": [
+        {
+          "fdc_id": 169640,
+          "description": "Honey",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345841,
+          "description": "Honey",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345736,
+          "description": "Honey butter",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "ketchup",
+      "normalized": "ketchup",
+      "candidates": [
+        {
+          "fdc_id": 2345246,
+          "description": "Ketchup",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345637,
+          "description": "Kimchi soup",
+          "score": 55.56,
+          "flags": []
+        },
+        {
+          "fdc_id": 747693,
+          "description": "Ketchup, restaurant",
+          "score": 53.85,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "large eggs",
+      "normalized": "eggs",
+      "candidates": [
+        {
+          "fdc_id": 167643,
+          "description": "Fish, whitefish, eggs (Alaska Native)",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2342320,
+          "description": "Livers, chicken, chopped, with eggs and onion",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 168989,
+          "description": "Fish, herring eggs on giant kelp, Pacific (Alaska Native)",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "lemon",
+      "normalized": "lemon",
+      "candidates": [
+        {
+          "fdc_id": 167749,
+          "description": "Lemon peel, raw",
+          "score": 100.0,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 167747,
+          "description": "Lemon juice, raw",
+          "score": 100.0,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 168573,
+          "description": "Lemon grass (citronella), raw",
+          "score": 100.0,
+          "flags": [
+            "raw"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "mashed potatoes",
+      "normalized": "mashed potatoes",
+      "candidates": [
+        {
+          "fdc_id": 170989,
+          "description": "Babyfood, mashed cheddar potatoes and broccoli, toddlers",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 173338,
+          "description": "Turkey, stuffing, mashed potatoes w/gravy, assorted vegetables, frozen, microwaved",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345048,
+          "description": "Stewed potatoes",
+          "score": 80.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "mixed berries",
+      "normalized": "mixed berries",
+      "candidates": [
+        {
+          "fdc_id": 2343064,
+          "description": "Mixed seeds",
+          "score": 75.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2344694,
+          "description": "Cherries, dried",
+          "score": 71.43,
+          "flags": [
+            "dried"
+          ]
+        },
+        {
+          "fdc_id": 2344693,
+          "description": "Blueberries, dried",
+          "score": 70.97,
+          "flags": [
+            "dried"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "olive oil",
+      "normalized": "olive oil",
+      "candidates": [
+        {
+          "fdc_id": 2345743,
+          "description": "Olive oil",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 171443,
+          "description": "Mayonnaise, reduced fat, with olive oil",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345779,
+          "description": "Mayonnaise, reduced fat,  with olive oil",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "onion",
+      "normalized": "onion",
+      "candidates": [
+        {
+          "fdc_id": 2343110,
+          "description": "Bread, onion",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341025,
+          "description": "Onion dip, light",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341024,
+          "description": "Onion dip, regular",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "parsley",
+      "normalized": "parsley",
+      "candidates": [
+        {
+          "fdc_id": 2343845,
+          "description": "Barley",
+          "score": 76.92,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345316,
+          "description": "Parsley, raw",
+          "score": 73.68,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 170416,
+          "description": "Parsley, fresh",
+          "score": 66.67,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "peas and carrots",
+      "normalized": "peas and carrots",
+      "candidates": [
+        {
+          "fdc_id": 173518,
+          "description": "Babyfood, carrots and beef, strained",
+          "score": 81.48,
+          "flags": []
+        },
+        {
+          "fdc_id": 2344510,
+          "description": "Rice, white, with carrots and dark green vegetables, fat added",
+          "score": 81.48,
+          "flags": []
+        },
+        {
+          "fdc_id": 2344551,
+          "description": "Rice, brown, with carrots and dark green vegetables, fat added",
+          "score": 81.48,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "potatoes",
+      "normalized": "potatoes",
+      "candidates": [
+        {
+          "fdc_id": 2345048,
+          "description": "Stewed potatoes",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345049,
+          "description": "Stewed potatoes with tomatoes",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341903,
+          "description": "Beef and potatoes with cheese sauce",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "red bell pepper",
+      "normalized": "red bell pepper",
+      "candidates": [
+        {
+          "fdc_id": 2258590,
+          "description": "Peppers, bell, red, raw",
+          "score": 78.95,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 2345500,
+          "description": "Peppers, red, cooked",
+          "score": 68.57,
+          "flags": [
+            "cooked"
+          ]
+        },
+        {
+          "fdc_id": 2258589,
+          "description": "Peppers, bell, yellow, raw",
+          "score": 68.29,
+          "flags": [
+            "raw"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "red lentils",
+      "normalized": "red lentils",
+      "candidates": [
+        {
+          "fdc_id": 172420,
+          "description": "Lentils, raw",
+          "score": 78.26,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 2344412,
+          "description": "Pasta with tomato-based sauce and beans or lentils",
+          "score": 77.78,
+          "flags": []
+        },
+        {
+          "fdc_id": 2342898,
+          "description": "Lentils, NFS",
+          "score": 69.57,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "rolled oats",
+      "normalized": "rolled oats",
+      "candidates": [
+        {
+          "fdc_id": 170305,
+          "description": "School Lunch, pizza, BIG DADDY'S LS 16\" 51% Whole Grain Rolled Edge Cheese Pizza, frozen",
+          "score": 70.59,
+          "flags": []
+        },
+        {
+          "fdc_id": 170701,
+          "description": "School Lunch, pizza, BIG DADDY'S LS 16\" 51% Whole Grain Rolled Edge Turkey Pepperoni Pizza, frozen",
+          "score": 70.59,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343253,
+          "description": "Roll, oatmeal",
+          "score": 66.67,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "salt and pepper",
+      "normalized": "salt and pepper",
+      "candidates": [
+        {
+          "fdc_id": 171010,
+          "description": "Salad dressing, mayonnaise, soybean and safflower oil, with salt",
+          "score": 69.57,
+          "flags": []
+        },
+        {
+          "fdc_id": 169691,
+          "description": "Gelatin desserts, dry mix, with added ascorbic acid, sodium-citrate and salt",
+          "score": 69.57,
+          "flags": []
+        },
+        {
+          "fdc_id": 170111,
+          "description": "Potatoes, baked, flesh and skin, with salt",
+          "score": 69.57,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "small corn tortillas",
+      "normalized": "corn tortillas",
+      "candidates": [
+        {
+          "fdc_id": 2343303,
+          "description": "Tortilla, corn",
+          "score": 92.86,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343304,
+          "description": "Tortilla, flour",
+          "score": 75.86,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343302,
+          "description": "Tortilla, NFS",
+          "score": 74.07,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "soy sauce",
+      "normalized": "soy sauce",
+      "candidates": [
+        {
+          "fdc_id": 2342917,
+          "description": "Soy sauce",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2342623,
+          "description": "Gravy, made with soy sauce",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 174278,
+          "description": "Soy sauce made from soy (tamari)",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "spinach leaves",
+      "normalized": "spinach leaves",
+      "candidates": [
+        {
+          "fdc_id": 2345170,
+          "description": "Spinach soup",
+          "score": 73.68,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345134,
+          "description": "Spinach, creamed",
+          "score": 73.33,
+          "flags": []
+        },
+        {
+          "fdc_id": 168462,
+          "description": "Spinach, raw",
+          "score": 69.23,
+          "flags": [
+            "raw"
+          ]
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "stew beef",
+      "normalized": "stew beef",
+      "candidates": [
+        {
+          "fdc_id": 2341930,
+          "description": "Beef stew with potatoes, Puerto Rican style",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2341899,
+          "description": "Beef stew with potatoes, tomato-based sauce, Mexican style",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2342191,
+          "description": "Beef stew with vegetables excluding potatoes, Puerto Rican style",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "sweet potato",
+      "normalized": "sweet potato",
+      "candidates": [
+        {
+          "fdc_id": 169303,
+          "description": "Sweet potato leaves, raw",
+          "score": 100.0,
+          "flags": [
+            "raw"
+          ]
+        },
+        {
+          "fdc_id": 2343494,
+          "description": "Pie, sweet potato",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345228,
+          "description": "Sweet potato tots",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "vegetable broth",
+      "normalized": "vegetable broth",
+      "candidates": [
+        {
+          "fdc_id": 171180,
+          "description": "Soup, SWANSON, vegetable broth",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2345701,
+          "description": "Vegetable smoothie",
+          "score": 78.79,
+          "flags": []
+        },
+        {
+          "fdc_id": 2343130,
+          "description": "Bread, vegetable",
+          "score": 77.42,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    },
+    {
+      "ingredient_name": "white rice",
+      "normalized": "white rice",
+      "candidates": [
+        {
+          "fdc_id": 2344478,
+          "description": "Beans and white rice",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2344482,
+          "description": "Black beans and white rice",
+          "score": 100.0,
+          "flags": []
+        },
+        {
+          "fdc_id": 2344483,
+          "description": "Pinto beans and white rice",
+          "score": 100.0,
+          "flags": []
+        }
+      ],
+      "chosen": null,
+      "note": null
+    }
+  ]
+}
