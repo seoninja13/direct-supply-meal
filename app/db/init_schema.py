@@ -25,6 +25,7 @@ from app.models import meal_plan as _meal_plan  # noqa: F401
 from app.models import order as _order  # noqa: F401
 from app.models import recipe as _recipe  # noqa: F401
 from app.models import resident as _resident  # noqa: F401
+from app.models import usda_food as _usda_food  # noqa: F401
 from app.models import user as _user  # noqa: F401
 
 
