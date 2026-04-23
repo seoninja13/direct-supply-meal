@@ -28,7 +28,7 @@ Post-Phase-1: Feature statuses describe what a user can actually do today; Proto
 | Pricing | App Phase 1 | Plan | Unit + Agent | `app/services/pricing.py`, `agents/tools_sdk.py::estimate_cost` | STUBBED |
 | Auth | App Phase 1 | Plan | Integration + E2E (Real Auth) | `app/auth/clerk_middleware.py`, `app/auth/dependencies.py`, `app/auth/provisioning.py` | SHIPPED |
 | Karpathy Learning | App Phase 1 | Plan | Agent (seeded traces) | `wiki/compiler.py`, `wiki/schema.yaml`, `agents/observability.py`, `wiki/TOPICS-INDEX.md` | STUBBED |
-| USDA Macros | App Phase 1 | Done (PRP approved) | In Progress (6/17 tasks + phase gate pending) | `app/services/scaling.py`, `app/models/usda_food.py`, `app/models/recipe.py`, `app/routes/recipes.py`, `app/templates/recipes/detail.html`, `app/templates/recipes/ingredients.html`, `fixtures/macro.csv`, `fixtures/ingredient_fdc_mapping.json`, `scripts/seed_usda.py` | IN-PROGRESS |
+| USDA Macros | App Phase 1 | Done (PRP approved) | In Progress (15/18 tasks + deploy pending) | `app/services/scaling.py`, `app/models/usda_food.py`, `app/models/recipe.py`, `app/routes/recipes.py`, `app/templates/recipes/detail.html`, `app/templates/recipes/ingredients.html`, `fixtures/macro.csv`, `fixtures/ingredient_fdc_mapping.json`, `scripts/seed_usda.py` | IN-PROGRESS (15/18 tasks done; awaiting T-016 verification + T-017 ship + deploy) |
 
 ---
 
