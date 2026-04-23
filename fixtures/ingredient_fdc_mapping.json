@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-04-23T16:49:51Z",
+  "notes": "PoC mapping — Veggie Omelette only (T-USDA-MACROS-006). Remaining 40 ingredients populated by T-USDA-MACROS-013 after PHASE-GATE-1.",
+  "policy": {
+    "raw_default": true,
+    "cooked_override_keywords": ["cooked", "roasted", "grilled", "fried", "baked", "boiled"],
+    "missing_policy": "null fdc_id = ingredient contributes 0 to totals AND triggers coverage-incomplete None response per PRP D12"
+  },
+  "ingredients": [
+    {
+      "ingredient_name": "large eggs",
+      "fdc_id": 171287,
+      "description": "Egg, whole, raw, fresh",
+      "note": "Generic raw whole chicken egg — shell excluded per USDA convention. Chosen over 2342627 (duplicate, but has less descriptive suffix) and 170893 (salted/pasteurized variant)."
+    },
+    {
+      "ingredient_name": "diced onion",
+      "fdc_id": 170000,
+      "description": "Onions, raw",
+      "note": "Generic raw onion — dicing does not change macros. Chosen over color-specific variants (red/yellow/white) since recipe does not specify."
+    },
+    {
+      "ingredient_name": "diced tomato",
+      "fdc_id": 170457,
+      "description": "Tomatoes, red, ripe, raw, year round average",
+      "note": "Most representative raw tomato entry — red/ripe is the default culinary assumption for 'diced tomato' in a breakfast omelette."
+    },
+    {
+      "ingredient_name": "spinach leaves",
+      "fdc_id": 168462,
+      "description": "Spinach, raw",
+      "note": "Generic raw spinach. 'Leaves' implies the leafy portion, which is the entire edible part of spinach."
+    },
+    {
+      "ingredient_name": "olive oil",
+      "fdc_id": 171413,
+      "description": "Oil, olive, salad or cooking",
+      "note": "Canonical USDA olive oil entry (884 kcal/100g, 100g fat). Chosen over 748608 (extra virgin, 0 kcal — data issue) and 2345743 (duplicate 'Olive oil' with 900 kcal — likely rounded). 171413 has the most reliable macros."
+    },
+    {
+      "ingredient_name": "small corn tortillas",
+      "fdc_id": 2343303,
+      "description": "Tortilla, corn",
+      "note": "Generic corn tortilla (218 kcal/100g). Size does not affect per-100g macros. Chosen over 175036 (same macros but older SR-Legacy entry) and 173241 (without added salt variant — recipe does not specify salt exclusion)."
+    },
+    {
+      "ingredient_name": "salt and pepper",
+      "fdc_id": null,
+      "description": null,
+      "note": "null: negligible macros — seasoning only contributes trace sodium. Per PRP D12, null fdc_id triggers coverage-incomplete None response only if macro calculation is demanded on an incomplete set; since salt/pepper legitimately has ~0 kcal/protein/carbs/fat, excluding it from totals is correct."
+    }
+  ]
+}
