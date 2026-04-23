@@ -1,6 +1,10 @@
 # PRP-USDA-MACROS-001 — USDA Macronutrient Totals on Recipes
 
-**Status:** DRAFT — awaiting ARCH approval
+**Status:** APPROVED
+**Approved:** 2026-04-23 by Ivan (Director ARCH)
+**Confirmations:**
+- Raw-vs-cooked default = raw unless ingredient name says otherwise
+- Coexist v1: hardcoded `recipe.carbs_g` NOT overwritten
 **Authored:** 2026-04-23
 **Owner:** Ivan (Director ARCH)
 **Feature slug:** `usda-macros`
@@ -177,7 +181,7 @@ graph TD
 
 ```yaml
 prp: PRP-USDA-MACROS-001
-status: DRAFT
+status: APPROVED
 feature_slug: usda-macros
 tasks:
   - id: T-USDA-MACROS-001
@@ -293,4 +297,4 @@ tasks:
 
 ---
 
-**Status: DRAFT — awaiting ARCH approval**
+**Status: APPROVED**
