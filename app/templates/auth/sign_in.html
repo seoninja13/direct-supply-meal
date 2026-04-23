@@ -4,11 +4,9 @@
   <h1>Sign in</h1>
   <p class="subtitle">
     Use your Google account to continue. Only allowlisted facility admins can sign in.
-    In this Phase&nbsp;1 prototype that's <code>admin@dulocore.com</code>
-    (bound to Riverside SNF).
   </p>
-  <p id="status" class="muted">Redirecting to Clerk&hellip;</p>
-  {% if not portal_configured %}
+  <p id="status" class="muted">Redirecting to Google&hellip;</p>
+  {% if not clerk_configured %}
     <p class="muted">
       <strong>Note:</strong> Clerk isn't configured. Set
       <code>CLERK_PUBLISHABLE_KEY</code> on the server and reload.
@@ -16,12 +14,61 @@
   {% endif %}
 </section>
 
+{% if clerk_js_url %}
+<script
+  async crossorigin="anonymous"
+  data-clerk-publishable-key="{{ publishable_key }}"
+  src="{{ clerk_js_url }}"
+  type="text/javascript"></script>
+{% endif %}
+
 <script>
   (function () {
-    var portal = "{{ portal_url }}";
-    if (!portal) return;  // Clerk not configured — leave the message visible.
-    var next = encodeURIComponent(window.location.origin + "/sign-in/callback");
-    window.location.replace(portal + "?redirect_url=" + next);
+    var pk = "{{ publishable_key }}";
+    var status = document.getElementById("status");
+    if (!pk) return;
+
+    async function startGoogleOAuth() {
+      if (!window.Clerk) {
+        status.textContent = "Clerk SDK did not load.";
+        return;
+      }
+      try {
+        await window.Clerk.load({ publishableKey: pk });
+      } catch (err) {
+        status.textContent = "Clerk load failed: " + (err && err.message ? err.message : err);
+        return;
+      }
+
+      // Already signed in at Clerk? Skip OAuth and go straight to the exchange.
+      if (window.Clerk.user) {
+        status.textContent = "Signed in. Exchanging session…";
+        window.location.replace("/sign-in/callback");
+        return;
+      }
+
+      try {
+        var origin = window.location.origin;
+        await window.Clerk.client.signIn.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: origin + "/sign-in/callback",
+          redirectUrlComplete: origin + "/sign-in/callback",
+        });
+      } catch (err) {
+        status.textContent = "Google OAuth init failed: " +
+          (err && err.message ? err.message : err);
+      }
+    }
+
+    function waitForClerk(retries) {
+      if (window.Clerk) return startGoogleOAuth();
+      if (retries <= 0) {
+        status.textContent = "Clerk SDK did not load.";
+        return;
+      }
+      setTimeout(function () { waitForClerk(retries - 1); }, 200);
+    }
+    waitForClerk(30);
   })();
 </script>
 {% endblock %}

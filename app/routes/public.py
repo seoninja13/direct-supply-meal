@@ -109,19 +109,24 @@ async def health_json():
 
 @router.get("/sign-in", response_class=HTMLResponse)
 async def sign_in(request: Request):
-    """Bootstrap page: redirect to Clerk's hosted AccountPortal sign-in."""
+    """Bootstrap page: load Clerk JS and trigger Google OAuth directly.
+
+    We skip Clerk's hosted AccountPortal because its post-OAuth redirect
+    ignores the ?redirect_url= query param on dev instances, landing users
+    on accounts.dev/default-redirect instead of our /sign-in/callback.
+    """
     settings = get_settings()
     pk = settings.CLERK_PUBLISHABLE_KEY
     host = _clerk_frontend_host(pk)
-    portal_url = _clerk_sign_in_portal_url(host)
     return request.app.state.templates.TemplateResponse(
         request=request,
         name="auth/sign_in.html",
         context={
             "page_title": "Sign in — ds-meal",
             "user": None,
-            "portal_url": portal_url,
-            "portal_configured": bool(portal_url),
+            "publishable_key": pk,
+            "clerk_js_url": _clerk_js_url(host),
+            "clerk_configured": bool(pk and host),
         },
     )
 
