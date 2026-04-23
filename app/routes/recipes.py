@@ -14,11 +14,12 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from sqlmodel import col, select
 
 from app.db.database import get_session
 from app.models.recipe import Ingredient, Recipe, RecipeIngredient
-from app.services.scaling import IngredientRow, scale_recipe
+from app.models.usda_food import UsdaFood
+from app.services.scaling import IngredientRow, MacrosRow, scale_recipe
 
 router = APIRouter()
 api_router = APIRouter(prefix="/api/v1")
@@ -66,6 +67,29 @@ async def _get_recipe_with_ingredients(
         for ri, ing in rows
     ]
 
+    # T-USDA-MACROS-009: Collect fdc_ids present on ingredients and build
+    # macros_lookup keyed by ingredient_id (NOT fdc_id). When no ingredients
+    # have an fdc_id yet, pass None so the response dict has NO macro keys
+    # (preserves pre-feature API shape). scale_recipe itself handles the
+    # coverage-incomplete case per PRP D12.
+    fdc_ids = {ing.fdc_id for _, ing in rows if ing.fdc_id is not None}
+    usda_by_fdc: dict[int, UsdaFood] = {}
+    if fdc_ids:
+        usda_stmt = select(UsdaFood).where(col(UsdaFood.fdc_id).in_(fdc_ids))
+        usda_result = await session.execute(usda_stmt)
+        usda_by_fdc = {u.fdc_id: u for u in usda_result.scalars().all()}
+
+    macros_lookup: dict[int, MacrosRow] = {}
+    for _ri, ing in rows:
+        if ing.fdc_id is not None and ing.fdc_id in usda_by_fdc:
+            u = usda_by_fdc[ing.fdc_id]
+            macros_lookup[ing.id] = MacrosRow(
+                kcal_per_100g=u.kcal_per_100g,
+                protein_g_per_100g=u.protein_g_per_100g,
+                carbs_g_per_100g=u.carbs_g_per_100g,
+                fat_g_per_100g=u.fat_g_per_100g,
+            )
+
     servings = target_servings if target_servings and target_servings > 0 else recipe.base_yield
     scaled = scale_recipe(
         recipe_id=recipe.id,
@@ -73,6 +97,7 @@ async def _get_recipe_with_ingredients(
         base_yield=recipe.base_yield,
         target_servings=servings,
         ingredients=ingredients,
+        macros_lookup=macros_lookup if macros_lookup else None,
     )
 
     return {
