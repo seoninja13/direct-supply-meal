@@ -12,11 +12,12 @@ order.id, resident.id). Safe to re-run.
 from __future__ import annotations
 
 import json
+import sys
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, update
 from sqlmodel import Session, SQLModel, select
 
 from app.db.database import _sync_url
@@ -151,6 +152,56 @@ def _seed_recipes(session: Session) -> tuple[int, int]:
     return recipe_count, ingredient_count
 
 
+def _ensure_usda_seeded(session: Session) -> int:
+    """Ensure usda_food is populated before backfilling Ingredient.fdc_id.
+
+    Delegates to ``scripts.seed_usda._seed_usda``, which is idempotent: if the
+    row count already matches fixtures/macro.csv the call is a no-op. This keeps
+    ``/app/data/ds-meal.db`` (dev) and the per-test tmp_path DBs in parity so
+    Ingredient.fdc_id → usda_food FKs resolve at route time (T-USDA-MACROS-013).
+    Returns rows inserted (0 when already seeded).
+    """
+    # Support both invocation styles: `python scripts/seed_db.py` (adds no repo
+    # root to sys.path) and `python -m scripts.seed_db` (does). Add the repo
+    # root so the sibling `scripts.seed_usda` module is importable in both.
+    _repo_root = Path(__file__).resolve().parent.parent
+    if str(_repo_root) not in sys.path:
+        sys.path.insert(0, str(_repo_root))
+    from scripts.seed_usda import MACRO_CSV, _seed_usda
+
+    if not MACRO_CSV.exists():
+        print(f"  (no {MACRO_CSV}; skipping USDA reference load)")
+        return 0
+    return _seed_usda(session, MACRO_CSV)
+
+
+def _backfill_ingredient_fdc_ids(session: Session) -> int:
+    """Backfill Ingredient.fdc_id from fixtures/ingredient_fdc_mapping.json.
+
+    Idempotent: re-runs update to pick up any mapping changes (T-USDA-MACROS-013).
+    Returns number of ingredient rows updated (sum of rowcounts across per-name UPDATEs).
+    """
+    mapping_path = FIXTURES_DIR / "ingredient_fdc_mapping.json"
+    if not mapping_path.exists():
+        print(f"  (no mapping file at {mapping_path}; skipping fdc_id backfill)")
+        return 0
+
+    data = json.loads(mapping_path.read_text(encoding="utf-8"))
+    entries = data.get("ingredients") or data.get("mappings") or []
+    updated = 0
+    for entry in entries:
+        name = entry.get("ingredient_name")
+        fdc_id = entry.get("fdc_id")
+        if not name or fdc_id is None:
+            continue
+        result = session.exec(
+            update(Ingredient).where(Ingredient.name == name).values(fdc_id=fdc_id)
+        )
+        updated += result.rowcount or 0
+    session.commit()
+    return updated
+
+
 def _seed_residents(session: Session) -> tuple[int, int]:
     """Load fixtures/residents.json. Idempotent on Resident.id.
 
@@ -280,6 +331,8 @@ def main() -> None:
         f = _seed_facilities(session)
         u = _seed_admin_user_placeholder(session)
         r, i = _seed_recipes(session)
+        usda = _ensure_usda_seeded(session)
+        fdc = _backfill_ingredient_fdc_ids(session)
         res, flags = _seed_residents(session)
         orders, lines, events = _seed_demo_orders(session)
 
@@ -288,6 +341,8 @@ def main() -> None:
         f"{i} recipe-ingredient links, {res} residents, {flags} dietary flags, "
         f"{orders} demo orders ({lines} lines, {events} status events)."
     )
+    print(f"Loaded {usda} USDA rows (0 = already present)")
+    print(f"Backfilled fdc_id for {fdc} ingredients")
 
 
 if __name__ == "__main__":

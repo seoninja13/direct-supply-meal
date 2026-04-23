@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-04-23T16:49:51Z",
-  "notes": "PoC mapping — Veggie Omelette only (T-USDA-MACROS-006). Remaining 40 ingredients populated by T-USDA-MACROS-013 after PHASE-GATE-1.",
+  "generated_at": "2026-04-23T17:00:00Z",
+  "notes": "Full ingredient → USDA fdc_id mapping (47 ingredients, 10 recipes). T-006 PoC (7 Veggie Omelette) + T-013 finalization (40 remaining). Raw-default per PRP D10. null fdc_id = negligible-macros seasoning.",
   "policy": {
     "raw_default": true,
     "cooked_override_keywords": ["cooked", "roasted", "grilled", "fried", "baked", "boiled"],
@@ -9,10 +9,94 @@
   },
   "ingredients": [
     {
-      "ingredient_name": "large eggs",
-      "fdc_id": 171287,
-      "description": "Egg, whole, raw, fresh",
-      "note": "Generic raw whole chicken egg — shell excluded per USDA convention. Chosen over 2342627 (duplicate, but has less descriptive suffix) and 170893 (salted/pasteurized variant)."
+      "ingredient_name": "almond milk",
+      "fdc_id": 174832,
+      "description": "Beverages, almond milk, unsweetened, shelf stable",
+      "note": "Unsweetened shelf-stable almond milk (15 kcal/100g). Chosen over 168751 (sweetened vanilla) and 1750338 (rebranded duplicate). T-013."
+    },
+    {
+      "ingredient_name": "beef broth",
+      "fdc_id": 171538,
+      "description": "Soup, beef broth or bouillon canned, ready-to-serve",
+      "note": "Ready-to-serve beef broth (7 kcal/100g). Closest to how broth is used in Beef Stew recipe. T-013."
+    },
+    {
+      "ingredient_name": "beef gravy",
+      "fdc_id": 171564,
+      "description": "Gravy, beef, canned, ready-to-serve",
+      "note": "Canned ready-to-serve beef gravy (53 kcal/100g). Only generic USDA beef gravy entry. T-013."
+    },
+    {
+      "ingredient_name": "blueberries",
+      "fdc_id": 171711,
+      "description": "Blueberries, raw",
+      "note": "Generic raw blueberries (60 kcal/100g). Chosen over duplicate raw entries. T-013."
+    },
+    {
+      "ingredient_name": "breadcrumbs",
+      "fdc_id": 174928,
+      "description": "Bread, crumbs, dry, grated, plain",
+      "note": "Dry plain bread crumbs (395 kcal/100g). Chosen over 172806 (seasoned) — plain matches generic recipe use. T-013."
+    },
+    {
+      "ingredient_name": "broccoli florets",
+      "fdc_id": 170379,
+      "description": "Broccoli, raw",
+      "note": "Generic raw broccoli (33 kcal/100g). Florets are the same macros as whole broccoli per 100g. Chosen over duplicate raw entries. T-013."
+    },
+    {
+      "ingredient_name": "butter",
+      "fdc_id": 173410,
+      "description": "Butter, salted",
+      "note": "Standard salted butter (717 kcal/100g). Only generic USDA butter entry at this macro level. T-013."
+    },
+    {
+      "ingredient_name": "carrot",
+      "fdc_id": 170393,
+      "description": "Carrots, raw",
+      "note": "Generic raw carrot (41 kcal/100g). Singular 'carrot' maps to the same USDA entry as 'carrots'. T-013."
+    },
+    {
+      "ingredient_name": "carrots",
+      "fdc_id": 170393,
+      "description": "Carrots, raw",
+      "note": "Generic raw carrots (41 kcal/100g). Chosen over salad variants (2345174 / 2345175) which are compound dishes. T-013."
+    },
+    {
+      "ingredient_name": "celery",
+      "fdc_id": 169988,
+      "description": "Celery, raw",
+      "note": "Generic raw celery (14.6 kcal/100g). Chosen over duplicate raw entries. T-013."
+    },
+    {
+      "ingredient_name": "chia seeds",
+      "fdc_id": 170554,
+      "description": "Seeds, chia seeds, dried",
+      "note": "Dried chia seeds (486 kcal/100g). Chosen over 2343065 (rebrand duplicate with identical macros). T-013."
+    },
+    {
+      "ingredient_name": "chicken breast",
+      "fdc_id": 171077,
+      "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+      "note": "Generic raw skinless boneless chicken breast (120 kcal/100g). Best match to recipe-style 'chicken breast'. Chosen over 171474 (meat and skin, 172 kcal) and 171509 (added solution variant). T-013."
+    },
+    {
+      "ingredient_name": "chicken broth",
+      "fdc_id": 171609,
+      "description": "Soup, chicken broth, low sodium, canned",
+      "note": "Low-sodium canned chicken broth (16 kcal/100g). Closest to how broth is used in Pureed Chicken + Sweet Potato recipe. T-013."
+    },
+    {
+      "ingredient_name": "cod fillet",
+      "fdc_id": 171955,
+      "description": "Fish, cod, Atlantic, raw",
+      "note": "Atlantic cod raw (82 kcal/100g). Chosen per T-013 hint — Atlantic over Pacific as default. T-013."
+    },
+    {
+      "ingredient_name": "cumin",
+      "fdc_id": 170923,
+      "description": "Spices, cumin seed",
+      "note": "Ground cumin seed spice (375 kcal/100g). Small amount per recipe (5g) but nonzero macros per PRP D10. T-013."
     },
     {
       "ingredient_name": "diced onion",
@@ -27,10 +111,88 @@
       "note": "Most representative raw tomato entry — red/ripe is the default culinary assumption for 'diced tomato' in a breakfast omelette."
     },
     {
-      "ingredient_name": "spinach leaves",
-      "fdc_id": 168462,
-      "description": "Spinach, raw",
-      "note": "Generic raw spinach. 'Leaves' implies the leafy portion, which is the entire edible part of spinach."
+      "ingredient_name": "egg",
+      "fdc_id": 171287,
+      "description": "Egg, whole, raw, fresh",
+      "note": "Generic raw whole egg (143 kcal/100g). Same entry as 'large eggs' since 'egg' in Turkey Meatloaf is culinarily identical. T-013."
+    },
+    {
+      "ingredient_name": "flour",
+      "fdc_id": 168894,
+      "description": "Wheat flour, white, all-purpose, enriched, bleached",
+      "note": "Standard enriched all-purpose white flour (364 kcal/100g). Default flour in Beef Stew recipe. T-013."
+    },
+    {
+      "ingredient_name": "garlic",
+      "fdc_id": 169230,
+      "description": "Garlic, raw",
+      "note": "Generic raw garlic (144 kcal/100g). Chosen over duplicate raw entries. T-013."
+    },
+    {
+      "ingredient_name": "ginger",
+      "fdc_id": 169231,
+      "description": "Ginger root, raw",
+      "note": "Generic raw ginger root (80 kcal/100g). Chosen over 170926 (spice, ground, dry — 335 kcal) and pickled variants — recipe uses fresh ginger. T-013."
+    },
+    {
+      "ingredient_name": "granola",
+      "fdc_id": 171646,
+      "description": "Cereals ready-to-eat, granola, homemade",
+      "note": "Homemade granola (489 kcal/100g). Chosen over 173892 (QUAKER brand-specific) per brand-avoidance rule. T-013."
+    },
+    {
+      "ingredient_name": "greek yogurt",
+      "fdc_id": 170894,
+      "description": "Yogurt, Greek, plain, nonfat (Includes foods for USDA's Food Distribution Program)",
+      "note": "Greek plain nonfat yogurt (59 kcal/100g). Chosen over CHOBANI brand variants (170864/170891). T-013."
+    },
+    {
+      "ingredient_name": "ground lamb",
+      "fdc_id": 174370,
+      "description": "Lamb, ground, raw",
+      "note": "Raw ground lamb (282 kcal/100g). Chosen over 172544 (cooked, broiled) per raw-default and 2341313 (rebrand duplicate). T-013."
+    },
+    {
+      "ingredient_name": "ground turkey",
+      "fdc_id": 171505,
+      "description": "Turkey, Ground, raw",
+      "note": "Raw ground turkey (148 kcal/100g). Chosen over fat-free variants (172847+) which are specific cuts — recipe uses standard ground turkey. T-013."
+    },
+    {
+      "ingredient_name": "honey",
+      "fdc_id": 169640,
+      "description": "Honey",
+      "note": "Generic honey (304 kcal/100g). Chosen over 2345841 (rebrand duplicate with identical macros). T-013."
+    },
+    {
+      "ingredient_name": "ketchup",
+      "fdc_id": 2345246,
+      "description": "Ketchup",
+      "note": "Standard ketchup (109 kcal/100g). Chosen over 747693 (restaurant variant) and 2345247 (reduced sodium) — generic default. T-013."
+    },
+    {
+      "ingredient_name": "large eggs",
+      "fdc_id": 171287,
+      "description": "Egg, whole, raw, fresh",
+      "note": "Generic raw whole chicken egg — shell excluded per USDA convention. Chosen over 2342627 (duplicate, but has less descriptive suffix) and 170893 (salted/pasteurized variant)."
+    },
+    {
+      "ingredient_name": "lemon",
+      "fdc_id": 2344662,
+      "description": "Lemon, raw",
+      "note": "Generic raw lemon (29 kcal/100g). Only USDA lemon-raw entry. T-013."
+    },
+    {
+      "ingredient_name": "mashed potatoes",
+      "fdc_id": 2344990,
+      "description": "Potato, mashed, from fresh, made with milk",
+      "note": "Mashed potato made fresh with milk (114 kcal/100g). Closest to Shepherd's Pie recipe which combines mashed potato with butter (dairy allergen tagged). Chosen over ready-to-heat (2344989) and fast-food variants. T-013."
+    },
+    {
+      "ingredient_name": "mixed berries",
+      "fdc_id": null,
+      "description": null,
+      "note": "null: USDA has no 'mixed berries' entry. Parfait recipe (150g) contains unspecified berry blend. Macros will be approximated at 0; for production, replace with e.g. blueberries+strawberries split. Flagged for human review. T-013."
     },
     {
       "ingredient_name": "olive oil",
@@ -39,16 +201,94 @@
       "note": "Canonical USDA olive oil entry (884 kcal/100g, 100g fat). Chosen over 748608 (extra virgin, 0 kcal — data issue) and 2345743 (duplicate 'Olive oil' with 900 kcal — likely rounded). 171413 has the most reliable macros."
     },
     {
-      "ingredient_name": "small corn tortillas",
-      "fdc_id": 2343303,
-      "description": "Tortilla, corn",
-      "note": "Generic corn tortilla (218 kcal/100g). Size does not affect per-100g macros. Chosen over 175036 (same macros but older SR-Legacy entry) and 173241 (without added salt variant — recipe does not specify salt exclusion)."
+      "ingredient_name": "onion",
+      "fdc_id": 170000,
+      "description": "Onions, raw",
+      "note": "Generic raw onion (39 kcal/100g). Same as 'diced onion'. T-013."
+    },
+    {
+      "ingredient_name": "parsley",
+      "fdc_id": 2345316,
+      "description": "Parsley, raw",
+      "note": "Generic raw parsley (36 kcal/100g). Only USDA parsley-raw entry. T-013."
+    },
+    {
+      "ingredient_name": "peas and carrots",
+      "fdc_id": 170425,
+      "description": "Peas and carrots, frozen, unprepared",
+      "note": "Frozen unprepared peas and carrots (53 kcal/100g). Chosen over cooked variants per raw-default and over canned variants per freshness preference. Shepherd's Pie typically uses frozen veg. T-013."
+    },
+    {
+      "ingredient_name": "potatoes",
+      "fdc_id": 170026,
+      "description": "Potatoes, flesh and skin, raw",
+      "note": "Generic raw potatoes with flesh and skin (77 kcal/100g). Chosen over russet/white/red variants since recipe does not specify. T-013."
+    },
+    {
+      "ingredient_name": "red bell pepper",
+      "fdc_id": 2345321,
+      "description": "Pepper, sweet, red, raw",
+      "note": "Sweet red pepper raw (26 kcal/100g). Per T-013 hint. T-013."
+    },
+    {
+      "ingredient_name": "red lentils",
+      "fdc_id": 172420,
+      "description": "Lentils, raw",
+      "note": "Generic raw lentils (352 kcal/100g). Per T-013 hint — USDA does not distinguish red/brown/green lentil varieties. T-013."
+    },
+    {
+      "ingredient_name": "rolled oats",
+      "fdc_id": 173904,
+      "description": "Cereals, oats, regular and quick, not fortified, dry",
+      "note": "Dry rolled oats (379 kcal/100g). Chosen over 169705 ('Oats' generic with food-distribution-program suffix) — this entry most directly describes culinary rolled oats. T-013."
     },
     {
       "ingredient_name": "salt and pepper",
       "fdc_id": null,
       "description": null,
       "note": "null: negligible macros — seasoning only contributes trace sodium. Per PRP D12, null fdc_id triggers coverage-incomplete None response only if macro calculation is demanded on an incomplete set; since salt/pepper legitimately has ~0 kcal/protein/carbs/fat, excluding it from totals is correct."
+    },
+    {
+      "ingredient_name": "small corn tortillas",
+      "fdc_id": 2343303,
+      "description": "Tortilla, corn",
+      "note": "Generic corn tortilla (218 kcal/100g). Size does not affect per-100g macros. Chosen over 175036 (same macros but older SR-Legacy entry) and 173241 (without added salt variant — recipe does not specify salt exclusion)."
+    },
+    {
+      "ingredient_name": "soy sauce",
+      "fdc_id": 174277,
+      "description": "Soy sauce made from soy and wheat (shoyu)",
+      "note": "Standard soy+wheat shoyu (53 kcal/100g). Per T-013 hint — canonical USDA reference entry. Chosen over reduced-sodium (172473) and tamari (174278) since recipe does not specify. T-013."
+    },
+    {
+      "ingredient_name": "spinach leaves",
+      "fdc_id": 168462,
+      "description": "Spinach, raw",
+      "note": "Generic raw spinach. 'Leaves' implies the leafy portion, which is the entire edible part of spinach."
+    },
+    {
+      "ingredient_name": "stew beef",
+      "fdc_id": 169491,
+      "description": "Beef, chuck, arm pot roast, separable lean and fat, trimmed to 1/8\" fat, all grades, raw",
+      "note": "Beef chuck arm pot roast raw, all grades (244 kcal/100g). Most common stew-beef cut per T-013 hint. Chosen over choice-only (168668) and select-only (168670) variants — 'all grades' is the generic default. T-013."
+    },
+    {
+      "ingredient_name": "sweet potato",
+      "fdc_id": 168482,
+      "description": "Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",
+      "note": "Raw unprepared sweet potato (86 kcal/100g). Chosen over cooked/baked/boiled/fried variants per raw-default. T-013."
+    },
+    {
+      "ingredient_name": "vegetable broth",
+      "fdc_id": 171583,
+      "description": "Soup, vegetable broth, ready to serve",
+      "note": "Ready-to-serve vegetable broth (5 kcal/100g). Chosen over 171180 (SWANSON brand-specific) and 2345664 (bouillon variant). T-013."
+    },
+    {
+      "ingredient_name": "white rice",
+      "fdc_id": 168877,
+      "description": "Rice, white, long-grain, regular, raw, enriched",
+      "note": "White long-grain rice raw enriched (365 kcal/100g). Per T-013 hint — standard white-rice entry. 'unenriched' variant does not exist as a separate entry in this DB; enriched is the default. T-013."
     }
   ]
 }
