@@ -54,12 +54,19 @@ class Ingredient(SQLModel, table=True):
     #   - name: ingredient name ("chicken breast", "white rice").
     #   - allergen_tags: JSON list[str] rolled up into recipe.allergens at seed time.
     #   - unit_cost_cents: cost per gram (int cents). Feeds Phase 2 supplier ERP seam.
+    #   - fdc_id: nullable FK to usda_food; seeded from fixtures/ingredient_fdc_mapping.json (T-USDA-MACROS-013).
     __tablename__ = "ingredient"
 
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     allergen_tags: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     unit_cost_cents: int
+    fdc_id: int | None = Field(
+        default=None,
+        foreign_key="usda_food.fdc_id",
+        index=True,
+        nullable=True,
+    )
 
 
 class RecipeIngredient(SQLModel, table=True):
