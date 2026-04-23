@@ -43,6 +43,10 @@ from agents.tools_sdk import TOOL_REGISTRY
 
 logger = logging.getLogger(__name__)
 
+# Tool names from the SDK path are prefixed by the MCP server. TOOL_REGISTRY
+# keys are the bare function names (shared with the test/replay path).
+_MCP_PREFIX = "mcp__ds_meal_nl_ordering__"
+
 # Type alias: a transcript is an async iterator of event dicts.
 TranscriptFn = Callable[[dict[str, Any]], AsyncIterator[dict[str, Any]]]
 
@@ -196,6 +200,7 @@ async def _default_query_fn(
             if isinstance(block, ToolUseBlock):
                 yield {
                     "type": "tool_use",
+                    "id": getattr(block, "id", None),
                     "name": block.name,
                     "input": dict(block.input or {}),
                 }
@@ -240,6 +245,10 @@ def _order_id_from_tools(tool_calls: list[dict[str, Any]]) -> int | None:
     """Scan recorded tool_calls for the last successful schedule_order and
     return its order_id. Used when the assistant emits `pending` without
     explicitly echoing the id.
+
+    Handles both content shapes:
+      - Dict list: [{"type": "text", "text": "<json>"}]  (MCP standard)
+      - Block list: [TextBlock(text="<json>")]            (SDK objects)
     """
     import json as _json
 
@@ -247,13 +256,26 @@ def _order_id_from_tools(tool_calls: list[dict[str, Any]]) -> int | None:
         if tc.get("name") != "schedule_order":
             continue
         result = tc.get("result") or {}
-        if result.get("isError"):
+        if not result or result.get("isError"):
             continue
+        content = result.get("content") or []
+        if not content:
+            continue
+
+        first = content[0]
+        text = None
+        if isinstance(first, dict):
+            text = first.get("text")
+        else:
+            text = getattr(first, "text", None)
+        if not isinstance(text, str):
+            continue
+
         try:
-            body = _json.loads(result["content"][0]["text"])
-        except (KeyError, IndexError, ValueError):
+            body = _json.loads(text)
+        except ValueError:
             continue
-        oid = body.get("order_id")
+        oid = body.get("order_id") if isinstance(body, dict) else None
         if isinstance(oid, int) and oid > 0:
             return oid
     return None
@@ -287,10 +309,29 @@ class NLOrderingDriver:
                 if etype == "tool_use":
                     tool_name = event.get("name", "")
                     tool_args = event.get("input", {}) or {}
+                    tool_use_id = event.get("id")
+
+                    if tool_name.startswith(_MCP_PREFIX):
+                        # Production (SDK) path — the SDK's in-process MCP
+                        # server has already executed the tool. Record the
+                        # call with its id; the result is filled in when the
+                        # matching `tool_result` event arrives.
+                        response.tool_calls.append(
+                            {
+                                "id": tool_use_id,
+                                "name": tool_name.removeprefix(_MCP_PREFIX),
+                                "input": tool_args,
+                                "result": None,
+                            }
+                        )
+                        continue
+
+                    # Test/replay path — driver is the executor.
                     handler = TOOL_REGISTRY.get(tool_name)
                     if handler is None:
                         response.tool_calls.append(
                             {
+                                "id": tool_use_id,
                                 "name": tool_name,
                                 "input": tool_args,
                                 "result": {
@@ -303,8 +344,23 @@ class NLOrderingDriver:
                         continue
                     result = await handler(tool_args)
                     response.tool_calls.append(
-                        {"name": tool_name, "input": tool_args, "result": result}
+                        {
+                            "id": tool_use_id,
+                            "name": tool_name,
+                            "input": tool_args,
+                            "result": result,
+                        }
                     )
+
+                elif etype == "tool_result":
+                    # Production path: match to the earlier `tool_use` event
+                    # by id and fill in the result the SDK produced.
+                    tool_use_id = event.get("tool_use_id")
+                    result = event.get("result") or {}
+                    for tc in reversed(response.tool_calls):
+                        if tc.get("id") == tool_use_id and tc.get("result") is None:
+                            tc["result"] = result
+                            break
 
                 elif etype == "assistant_message":
                     if event.get("awaiting_confirmation"):
